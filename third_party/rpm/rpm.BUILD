@@ -213,7 +213,8 @@ cc_library(
         "-Wno-format",
         "-Wno-enum-conversion",
         "-Wno-unused-variable",
-    ] + ["-Iexternal/rpm"] + select({
+        "-Iexternal/rpm",
+    ] + select({
         "@platforms//os:linux": [
             "-DHAVE___PROGNAME",
             "-D__GLIBC__",

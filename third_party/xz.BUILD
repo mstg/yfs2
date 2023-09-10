@@ -213,7 +213,7 @@ cc_library(
     includes = [
         "src/liblzma/api",
     ],
-    linkstatic = 1,
+    linkstatic = True,
     visibility = ["//visibility:public"],
     linkopts = [
         "-lpthread",
