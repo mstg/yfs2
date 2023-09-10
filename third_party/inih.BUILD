@@ -17,17 +17,30 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "etcdv3",
+    name = "inih",
     srcs = [
-        "etcdv3.cc",
-        "lease.cc",
+        "ini.c",
     ],
     hdrs = [
-        "etcdv3.h",
-        "lease.h",
+        "ini.h",
+    ],
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "cpp",
+    srcs = [
+        "cpp/INIReader.cpp",
+    ],
+    hdrs = [
+        "cpp/INIReader.h",
+    ],
+    deps = [
+        ":inih",
+    ],
+    includes = [
+        "cpp",
     ],
     visibility = ["//visibility:public"],
-    deps = [
-        "//third_party/etcd/api/etcdserverpb:rpc",
-    ],
 )
