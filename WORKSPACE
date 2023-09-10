@@ -111,17 +111,6 @@ http_archive(
 )
 
 # ------------------------------------------------------------------------------
-# openssl
-# ------------------------------------------------------------------------------
-http_archive(
-    name = "openssl",
-    build_file = "//third_party/foreign_cc:openssl.BUILD",
-    sha256 = "168d4a53715552e4fa319cfd2fb9ca63d46e62cb6c6f514caa10bd7bf5e733bb",
-    strip_prefix = "openssl-b13ef5e90a1d9c73f6c548ab5557a939a09744e0",
-    urls = ["https://github.com/openssl/openssl/archive/b13ef5e90a1d9c73f6c548ab5557a939a09744e0.tar.gz"],
-)
-
-# ------------------------------------------------------------------------------
 # zlib
 # ------------------------------------------------------------------------------
 http_archive(
