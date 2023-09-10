@@ -17,15 +17,17 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "rpm_helper",
+    name = "pugixml",
     srcs = [
-        "rpm.cc",
+        "src/pugixml.cpp",
     ],
     hdrs = [
-        "rpm.h",
+        "src/pugiconfig.hpp",
+        "src/pugixml.hpp",
     ],
+    includes = [
+        "src",
+    ],
+    linkstatic = True,
     visibility = ["//visibility:public"],
-    deps = [
-        "@rpm",
-    ],
 )
