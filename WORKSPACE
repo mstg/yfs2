@@ -16,6 +16,8 @@ http_archive(
 # ------------------------------------------------------------------------------
 git_repository(
     name = "boringssl",
+    build_file = "//third_party:boringssl.BUILD",
+    # maintenance-git(boringssl.googlesource.com/boringssl, main-with-bazel)
     commit = "9f9457790106e37402dfaae893e24d80a8666edd",
     remote = "https://boringssl.googlesource.com/boringssl",
 )
@@ -169,4 +171,69 @@ http_archive(
     sha256 = "c5a03a7fa00fee83c458b2fdbdb9a99375829691e90681e9888c8166e9887f3e",
     strip_prefix = "rpm-08ae4ee23e7b746c529abef8ddc86cf650177e69",
     urls = ["https://github.com/rpm-software-management/rpm/archive/08ae4ee23e7b746c529abef8ddc86cf650177e69.tar.gz"],
+)
+
+# ------------------------------------------------------------------------------
+# curl
+# ------------------------------------------------------------------------------
+http_archive(
+    name = "curl",
+    build_file = "//third_party/tensorflow:curl.BUILD",
+    sha256 = "f98bdb06c0f52bdd19e63c4a77b5eb19b243bcbbd0f5b002b9f3cba7295a3a42",
+    strip_prefix = "curl-8.2.1",
+    urls = ["https://curl.haxx.se/download/curl-8.2.1.tar.gz"],
+)
+
+# ------------------------------------------------------------------------------
+# curlpp
+# ------------------------------------------------------------------------------
+http_archive(
+    name = "curlpp",
+    build_file = "//third_party:curlpp.BUILD",
+    sha256 = "f62bcd784c186ee19138424c4a5983927632059a88bc0056dd3beb612c6c7e2b",
+    strip_prefix = "curlpp-1d8c7876cc81d7d125b663066282b207d9cbfe9a",
+    urls = ["https://github.com/jpbarrette/curlpp/archive/1d8c7876cc81d7d125b663066282b207d9cbfe9a.tar.gz"],
+)
+
+# ------------------------------------------------------------------------------
+# inih
+# ------------------------------------------------------------------------------
+http_archive(
+    name = "inih",
+    build_file = "//third_party:inih.BUILD",
+    sha256 = "97eb803dbf3af5438dfb3db06509111f3b0927b25f12dc51df3ea084c7ff705c",
+    strip_prefix = "inih-4e618f77d4bae216865c5abd972d99b1ba5031e2",
+    urls = ["https://github.com/benhoyt/inih/archive/4e618f77d4bae216865c5abd972d99b1ba5031e2.tar.gz"],
+)
+
+# ------------------------------------------------------------------------------
+# nlohmann_json
+# ------------------------------------------------------------------------------
+http_archive(
+    name = "nlohmann_json",
+    sha256 = "f35423aa4e28aca9b5844f01eaee24d36515e32e6db30e19f3ccd07120bd7619",
+    strip_prefix = "json-836b7beca4b62e2a99465edef44066b7401fd704",
+    urls = ["https://github.com/nlohmann/json/archive/836b7beca4b62e2a99465edef44066b7401fd704.tar.gz"],
+)
+
+# ------------------------------------------------------------------------------
+# pugixml
+# ------------------------------------------------------------------------------
+http_archive(
+    name = "pugixml",
+    build_file = "//third_party:pugixml.BUILD",
+    sha256 = "56e43bbe2733cc149c7d50a6d11a65b3c4ed080b16bfa6050154e09b1c320ed0",
+    strip_prefix = "pugixml-db78afc2b7d8f043b4bc6b185635d949ea2ed2a8",
+    urls = ["https://github.com/zeux/pugixml/archive/db78afc2b7d8f043b4bc6b185635d949ea2ed2a8.tar.gz"],
+)
+
+# ------------------------------------------------------------------------------
+# minio_cpp
+# ------------------------------------------------------------------------------
+http_archive(
+    name = "minio_cpp",
+    build_file = "//third_party/minio_cpp:minio_cpp.BUILD",
+    sha256 = "42eccc8188fb084a21c9bd79e54fa91d3a8f93bba44de8e516263c14916e3f17",
+    strip_prefix = "minio-cpp-c62d3b7f041f869714a8661d1ca0501e816c2ab3",
+    urls = ["https://github.com/minio/minio-cpp/archive/c62d3b7f041f869714a8661d1ca0501e816c2ab3.tar.gz"],
 )
