@@ -14,23 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-syntax = "proto3";
 
-package yumrepofs.v2;
+#ifndef YFS2_ETCDV3_H_
+#define YFS2_ETCDV3_H_
 
-option java_multiple_files = true;
-option java_outer_classname = "MutationServerProto";
-option java_package = "org.resf.peridot.yumrepofs.v2";
-option go_package = "go.resf.org/peridot/yumrepofs/pb/v2;yfs2pb";
+#include <vector>
 
-service MutationServer {
-  rpc Hello(HelloRequest) returns (HelloResponse) {}
+#include "yfs2/etcdv3_lease.h"
+
+#include "third_party/etcd/api/etcdserverpb/rpc.grpc.pb.h"
+
+namespace yfs2 {
+
+class EtcdClient {
+ public:
+  explicit EtcdClient(const std::string& endpoint);
+  virtual ~EtcdClient() = default;
+
+  // Helper methods
+  virtual std::optional<std::string> GetKeyValue(const std::string& key);
+  virtual void PutKeyValue(const std::string& key, const std::string& value);
+
+  // Lease helper
+  virtual std::shared_ptr<EtcdLease> CreateLease(int ttl);
+ private:
+  std::shared_ptr<grpc::Channel> channel;
+  std::unique_ptr<etcdserverpb::KV::Stub> kv;
+};
+
 }
 
-message HelloRequest {
-  string name = 1;
-}
-
-message HelloResponse {
-  string message = 1;
-}
+#endif

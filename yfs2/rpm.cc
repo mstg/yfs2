@@ -19,13 +19,13 @@
 
 #include <rpm/rpmts.h>
 
-#include "rpm.h"
+#include "yfs2/rpm.h"
 
-namespace resf::rpm_helper {
+namespace yfs2 {
 
-std::string ErrorToString(rpm_errno_t error) {
+std::string RpmErrorToString(rpm_errno_t error) {
   switch (error) {
-    case RPM_SUCCESS:return "Success";
+    case RPM_OK:return "Success";
     case RPM_FILE_NOT_FOUND:return "File not found";
     case RPM_ERROR:return "Error";
     case RPM_HEADER_NOT_FOUND:return "Header not found";
@@ -33,6 +33,36 @@ std::string ErrorToString(rpm_errno_t error) {
     case RPM_NO_KEY:return "No key";
     default:return "Unknown error";
   }
+}
+
+Rpm::Rpm(bool ignore_signature) {
+  fd = nullptr;
+  header = nullptr;
+
+  ts = rpmtsCreate();
+
+  rpmVSFlags vs_flags = 0;
+  if (ignore_signature) {
+    vs_flags |= RPMVSF_MASK_NOSIGNATURES;
+  }
+
+  rpmtsSetVSFlags(ts, vs_flags);
+}
+
+Rpm::~Rpm() {
+  // librpm is a C library, so we have to free the resources manually
+  // Free header if it is not null
+  if (header != nullptr) {
+    headerFree(header);
+  }
+
+  // If file descriptor is not null, close it
+  if (fd != nullptr) {
+    Fclose(fd);
+  }
+
+  // Transaction set is always created, so we have to free it
+  rpmtsFree(ts);
 }
 
 rpm_errno_t Rpm::Init(const std::string &rpm_path) {
@@ -48,10 +78,6 @@ rpm_errno_t Rpm::Init(const std::string &rpm_path) {
   }
 
   // Open the rpm
-  // Create an RPM transaction set
-  rpmts ts = rpmtsCreate();
-
-  // Declare a header
   rpmRC read_rc = rpmReadPackageFile(ts, fd, rpm_path.c_str(), &header);
   switch (read_rc) {
     case RPMRC_OK:break;
@@ -61,7 +87,7 @@ rpm_errno_t Rpm::Init(const std::string &rpm_path) {
     default:return RPM_ERROR;
   }
 
-  return RPM_SUCCESS;
+  return RPM_OK;
 }
 
 rpm_errno_t Rpm::GetHeaderStr(const rpmTagVal &tag, std::string *header_value) {
@@ -74,7 +100,7 @@ rpm_errno_t Rpm::GetHeaderStr(const rpmTagVal &tag, std::string *header_value) {
   // Copy the header
   *header_value = header_value_c;
 
-  return RPM_SUCCESS;
+  return RPM_OK;
 }
 
-} // namespace resf::rpm_helper
+}

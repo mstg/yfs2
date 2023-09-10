@@ -21,7 +21,7 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
 
-#include "mutation_server/mutation_server_impl.h"
+#include "yfs2/mutation_server/impl.h"
 
 DEFINE_string(listen_addr, "0.0.0.0", "Address to listen on");
 DEFINE_int32(listen_port, 6771, "Port to listen on");
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 
   // Start the mutation server.
   std::string addr = FLAGS_listen_addr + ":" + std::to_string(FLAGS_listen_port);
-  resf::yumrepofs::MutationServerImpl mutation_server;
+  yfs2::mutation_server::MutationServerImpl mutation_server;
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort(addr, grpc::InsecureServerCredentials());

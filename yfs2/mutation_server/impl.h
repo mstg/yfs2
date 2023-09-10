@@ -14,23 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-syntax = "proto3";
 
-package yumrepofs.v2;
+#ifndef YFS2_MUTATION_SERVER_IMPL_H_
+#define YFS2_MUTATION_SERVER_IMPL_H_
 
-option java_multiple_files = true;
-option java_outer_classname = "MutationServerProto";
-option java_package = "org.resf.peridot.yumrepofs.v2";
-option go_package = "go.resf.org/peridot/yumrepofs/pb/v2;yfs2pb";
+#include "yfs2/etcdv3.h"
+#include "yumrepofs/v2/mutation_server.grpc.pb.h"
 
-service MutationServer {
-  rpc Hello(HelloRequest) returns (HelloResponse) {}
+namespace yfs2::mutation_server {
+
+class MutationServerImpl : public yumrepofs::v2::MutationServer::Service {
+ public:
+  MutationServerImpl();
+
+  grpc::Status Hello(grpc::ServerContext *context,
+                     const yumrepofs::v2::HelloRequest *request,
+                     yumrepofs::v2::HelloResponse *response) override;
+ private:
+  std::shared_ptr<yfs2::EtcdClient> etcd;
+};
+
 }
 
-message HelloRequest {
-  string name = 1;
-}
-
-message HelloResponse {
-  string message = 1;
-}
+#endif

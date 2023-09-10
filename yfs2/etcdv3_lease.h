@@ -15,21 +15,28 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#ifndef YFS2_MUTATION_SERVER_MUTATION_SERVER_IMPL_H_
-#define YFS2_MUTATION_SERVER_MUTATION_SERVER_IMPL_H_
+#ifndef YFS2_ETCDV3_LEASE_H_
+#define YFS2_ETCDV3_LEASE_H_
 
-#include "etcdv3/etcdv3.h"
-#include "yumrepofs/v2/mutation_server.grpc.pb.h"
+#include <thread>
 
-namespace resf::yumrepofs {
+#include "third_party/etcd/api/etcdserverpb/rpc.grpc.pb.h"
 
-class MutationServerImpl : public ::yumrepofs::v2::MutationServer::Service {
+namespace yfs2 {
+
+class EtcdLease {
  public:
-  MutationServerImpl();
+  explicit EtcdLease(std::shared_ptr<grpc::Channel> channel, int ttl);
+  virtual ~EtcdLease() = default;
+  virtual void Close();
  private:
-  std::unique_ptr<resf::etcdv3::Client> etcd;
+  std::shared_ptr<grpc::Channel> channel;
+  std::unique_ptr<etcdserverpb::Lease::Stub> lease;
+  int64_t lease_id;
+  std::thread keepalive_thread;
+  bool active;
 };
 
-} // namespace resf::yumrepofs
+}
 
-#endif //YFS2_MUTATION_SERVER_MUTATION_SERVER_IMPL_H_
+#endif //YFS2_ETCDV3_LEASE_H_

@@ -11,7 +11,7 @@ end_of_line = lf
 [*.bzl]
 indent_size = 4
 
-[BUILD.*]
+[*.BUILD]
 indent_size = 4
 
 [BUILD]

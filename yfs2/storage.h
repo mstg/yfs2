@@ -15,28 +15,33 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#ifndef YFS2_LIBETCD_LEASE_H_
-#define YFS2_LIBETCD_LEASE_H_
+#ifndef YFS2_STORAGE_H_
+#define YFS2_STORAGE_H_
 
-#include <thread>
+#include <cstdint>
+#include <string>
 
-#include "third_party/etcd/api/etcdserverpb/rpc.grpc.pb.h"
+namespace yfs2 {
 
-namespace resf::etcdv3 {
+typedef int32_t storage_errno_t;
+static const storage_errno_t STORAGE_OK = 0;
+static const storage_errno_t STORAGE_OBJ_NOT_FOUND = -1;
+static const storage_errno_t STORAGE_ERROR = -2;
 
-class Lease {
+class Storage {
  public:
-  explicit Lease(std::shared_ptr<grpc::Channel> channel, int ttl);
-  virtual ~Lease() = default;
-  virtual void Close();
- private:
-  std::shared_ptr<grpc::Channel> channel;
-  std::unique_ptr<etcdserverpb::Lease::Stub> lease;
-  int64_t lease_id;
-  std::thread keepalive_thread;
-  bool active;
+  // Download a file from storage to a specified path.
+  virtual storage_errno_t Download(const std::string &path, const std::string &dest_path) {
+    return STORAGE_ERROR;
+  };
+
+  // // Upload a file from a specified path to storage.
+  // virtual storage_errno_t Upload(const std::string &path, const std::string &dest_path) = 0;
+
+  // // Exists checks if a file exists in storage.
+  // virtual storage_errno_t Exists(const std::string &path) = 0;
 };
 
 }
 
-#endif //YFS2_LIBETCD_LEASE_H_
+#endif

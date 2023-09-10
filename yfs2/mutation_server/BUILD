@@ -18,12 +18,14 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 cc_library(
     name = "mutation_server_lib",
-    srcs = ["mutation_server_impl.cc"],
-    hdrs = ["mutation_server_impl.h"],
+    srcs = ["impl.cc"],
+    hdrs = ["impl.h"],
     deps = [
-        "//etcdv3",
-        "//rpm_helper",
+        "//yfs2:etcdv3",
+        "//yfs2:rpm",
+        "//yfs2:storage_s3",
         "//yumrepofs/v2:mutation_server_cc_grpc",
+        "@com_google_absl//absl/cleanup",
     ],
 )
 

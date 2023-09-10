@@ -19,11 +19,11 @@
 
 #include <utility>
 
-#include "etcdv3/lease.h"
+#include "yfs2/etcdv3_lease.h"
 
-namespace resf::etcdv3 {
+namespace yfs2 {
 
-Lease::Lease(std::shared_ptr<grpc::Channel> channel, int ttl) {
+EtcdLease::EtcdLease(std::shared_ptr<grpc::Channel> channel, int ttl) {
   active = true;
 
   this->channel = std::move(channel);
@@ -62,20 +62,21 @@ Lease::Lease(std::shared_ptr<grpc::Channel> channel, int ttl) {
     // Close stream
     stream->WritesDone();
     stream->Finish();
-
-    // Revoke lease
-    auto req = etcdserverpb::LeaseRevokeRequest();
-    req.set_id(lease_id);
-    etcdserverpb::LeaseRevokeResponse resp;
-    lease->LeaseRevoke(&ctx, req, &resp);
   });
 }
 
-void Lease::Close() {
+void EtcdLease::Close() {
   // Cancel keepalive thread
   active = false;
   keepalive_thread.join();
+
+  // Revoke lease
+  grpc::ClientContext ctx;
+  auto req = etcdserverpb::LeaseRevokeRequest();
+  req.set_id(lease_id);
+  etcdserverpb::LeaseRevokeResponse resp;
+  lease->LeaseRevoke(&ctx, req, &resp);
 }
 
-} // namespace resf::etcdv3
+}
 

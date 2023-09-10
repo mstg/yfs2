@@ -15,13 +15,13 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#include "etcdv3/etcdv3.h"
+#include "yfs2/etcdv3.h"
 
 #include <grpcpp/grpcpp.h>
 
-namespace resf::etcdv3 {
+namespace yfs2 {
 
-Client::Client(const std::string& endpoint) {
+EtcdClient::EtcdClient(const std::string& endpoint) {
   // Create clients
   // First a channel, then stubs
   channel = grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials());
@@ -29,7 +29,7 @@ Client::Client(const std::string& endpoint) {
   kv = etcdserverpb::KV::NewStub(channel);
 }
 
-std::optional<std::string> Client::GetKeyValue(const std::string& key) {
+std::optional<std::string> EtcdClient::GetKeyValue(const std::string& key) {
   auto req = etcdserverpb::RangeRequest();
   req.mutable_key()->assign(key);
   etcdserverpb::RangeResponse resp;
@@ -43,7 +43,7 @@ std::optional<std::string> Client::GetKeyValue(const std::string& key) {
   return resp.kvs(0).value();
 }
 
-void Client::PutKeyValue(const std::string& key, const std::string& value) {
+void EtcdClient::PutKeyValue(const std::string& key, const std::string& value) {
   auto req = etcdserverpb::PutRequest();
   req.mutable_key()->assign(key);
   req.mutable_value()->assign(value);
@@ -52,8 +52,8 @@ void Client::PutKeyValue(const std::string& key, const std::string& value) {
   kv->Put(&ctx, req, &resp);
 }
 
-std::unique_ptr<resf::etcdv3::Lease> Client::CreateLease(int ttl) {
-  return std::make_unique<resf::etcdv3::Lease>(channel, ttl);
+std::shared_ptr<yfs2::EtcdLease> EtcdClient::CreateLease(int ttl) {
+  return std::make_shared<yfs2::EtcdLease>(channel, ttl);
 }
 
-} // namespace resf
+}

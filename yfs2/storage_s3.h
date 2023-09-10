@@ -15,33 +15,28 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#ifndef YFS2_LIBETCD_LIBETCD_H_
-#define YFS2_LIBETCD_LIBETCD_H_
+#ifndef YFS2_STORAGE_MINIO_H_
+#define YFS2_STORAGE_MINIO_H_
 
-#include <vector>
+#include "yfs2/storage.h"
 
-#include "etcdv3/lease.h"
+namespace yfs2 {
 
-#include "third_party/etcd/api/etcdserverpb/rpc.grpc.pb.h"
-
-namespace resf::etcdv3 {
-
-class Client {
+class StorageS3 : public Storage {
  public:
-  explicit Client(const std::string& endpoint);
-  virtual ~Client() = default;
+  StorageS3();
+  virtual ~StorageS3() = default;
 
-  // Helper methods
-  virtual std::optional<std::string> GetKeyValue(const std::string& key);
-  virtual void PutKeyValue(const std::string& key, const std::string& value);
-
-  // Lease helper
-  virtual std::unique_ptr<resf::etcdv3::Lease> CreateLease(int ttl);
+  // Download a file from storage to a specified path.
+  storage_errno_t Download(const std::string &path, const std::string &dest_path) override;
  private:
-  std::shared_ptr<grpc::Channel> channel;
-  std::unique_ptr<etcdserverpb::KV::Stub> kv;
+  std::string base_url;
+  std::string region;
+  std::string bucket;
+  std::string access_key_id;
+  std::string secret_access_key;
 };
 
-} // namespace resf
+}
 
-#endif //YFS2_LIBETCD_LIBETCD_H_
+#endif
