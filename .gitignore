@@ -1,3 +1,4 @@
-.clwb
+.clwb/.idea/blazeInfo.xml
+.clwb/.blaze
 bazel-*
 .DS_Store
