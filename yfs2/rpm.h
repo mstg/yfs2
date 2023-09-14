@@ -33,6 +33,7 @@ class Rpm {
 
   virtual absl::Status Init(const std::string &rpm_path);
   virtual absl::StatusOr<std::string> GetHeaderStr(const rpmTagVal &tag);
+
  private:
   rpmts ts;
   FD_t fd = nullptr;

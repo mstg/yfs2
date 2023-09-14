@@ -30,6 +30,7 @@ class MutationServerImpl : public yumrepofs::v2::MutationServer::Service {
  public:
   explicit MutationServerImpl(std::shared_ptr<EtcdClient> _etcd,
                               std::shared_ptr<Storage> _storage);
+
  private:
   std::shared_ptr<yfs2::EtcdClient> etcd;
   std::shared_ptr<yfs2::Storage> storage;

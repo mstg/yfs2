@@ -12,8 +12,8 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 syntax = "proto3";
 
 package yumrepofs.v2;
@@ -40,14 +40,14 @@ service MutationServer {
   rpc UploadModuleMetadata(UploadModuleMetadataRequest) returns (UploadModuleMetadataResponse);
 }
 
-message StartTransactionRequest {}
+message StartTransactionRequest {
+  // Project name
+  string project_name = 1;
+}
 
 message StartTransactionResponse {
   // Transaction ID.
   string transaction_id = 1;
-
-  // Project name
-  string project_name = 2;
 }
 
 message CommitTransactionRequest {
@@ -71,8 +71,17 @@ message UploadRpmRequest {
   // RPM file content.
   bytes content = 2;
 
-  // Finished uploading?
-  bool finished = 3;
+  // Part number, must be sequential.
+  // Starts from 0. And fails if not sequential or a part is repeated.
+  // Fails if part > 1000
+  int32 part_number = 3;
+
+  // Unique identifier that identifies a specific RPM file.
+  // Can be a random UUID.
+  string upload_rpm_id = 4;
+
+  // Whether this part finishes the upload.
+  bool finished = 5;
 }
 
 message UploadRpmResponse {}

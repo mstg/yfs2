@@ -33,6 +33,7 @@ class EtcdLock {
 
   virtual grpc::Status Lock(const std::string& name, const int64_t& lease_id);
   virtual grpc::Status Unlock();
+
  private:
   std::shared_ptr<grpc::Channel> channel;
   std::unique_ptr<v3lockpb::Lock::Stub> lock;

@@ -112,5 +112,15 @@ grpc::Status EtcdLease::Close() {
   return lease->LeaseRevoke(&ctx, req, &resp);
 }
 
+grpc::Status Close(std::shared_ptr<grpc::Channel> channel, int64_t lease_id) {
+  auto lease = etcdserverpb::Lease::NewStub(channel);
+
+  grpc::ClientContext ctx;
+  auto req = etcdserverpb::LeaseRevokeRequest();
+  req.set_id(lease_id);
+  etcdserverpb::LeaseRevokeResponse resp;
+  return lease->LeaseRevoke(&ctx, req, &resp);
+}
+
 }  // namespace yfs2
 

@@ -49,6 +49,19 @@ class Storage {
   virtual absl::StatusOr<std::string> Get(const std::string &path) {
     return absl::UnimplementedError("unimplemented");
   }
+
+  // StartMultipartUpload creates a multipart upload session.
+  virtual absl::StatusOr<std::string> StartMultipartUpload(const std::string &path) {
+    return absl::UnimplementedError("unimplemented");
+  }
+
+  // UploadPart uploads a part to a multipart upload session.
+  virtual absl::Status UploadPart(const std::string &path,
+                                  const std::string &upload_id,
+                                  const std::string &part_number,
+                                  const std::string &content) {
+    return absl::UnimplementedError("unimplemented");
+  }
 };
 
 }  // namespace yfs2

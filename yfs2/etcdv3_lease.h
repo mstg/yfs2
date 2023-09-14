@@ -32,6 +32,10 @@ class EtcdLease {
   virtual grpc::Status Start();
   virtual int64_t GetLeaseId();
   virtual grpc::Status Close();
+
+  static grpc::Status Close(std::shared_ptr<grpc::Channel> channel,
+                            int64_t lease_id);
+
  private:
   std::shared_ptr<grpc::Channel> channel;
   std::unique_ptr<etcdserverpb::Lease::Stub> lease;

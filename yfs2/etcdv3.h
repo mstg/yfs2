@@ -34,19 +34,18 @@ class EtcdClient {
   virtual ~EtcdClient() = default;
 
   // Helper methods
-  virtual grpc::Status GetKeyValue(
-      const std::string &key,
-      std::optional<std::string> *value);
-  virtual grpc::Status PutKeyValue(
-      const std::string &key,
-      const std::string &value,
-      const std::optional<int64_t> &lease_id);
+  virtual grpc::Status GetKeyValue(const std::string &key,
+                                   std::optional<std::string> *value);
+  virtual grpc::Status PutKeyValue(const std::string &key,
+                                   const std::string &value,
+                                   const std::optional<int64_t> &lease_id);
 
   // Lock helper
   virtual std::shared_ptr<EtcdLock> CreateLock();
 
   // Lease helper
   virtual std::shared_ptr<EtcdLease> CreateLease(int ttl);
+
  private:
   std::shared_ptr<grpc::Channel> channel;
   std::unique_ptr<etcdserverpb::KV::Stub> kv;

@@ -46,6 +46,7 @@ class StorageS3 : public Storage {
 
   // Get a file's content directly from storage.
   absl::StatusOr<std::string> Get(const std::string &path) override;
+
  private:
   std::string region;
   std::string bucket;
