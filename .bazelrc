@@ -1,5 +1,17 @@
+# C++ options
 build --cxxopt='-std=c++20'
+build --host_cxxopt='-std=c++20'
+build --cxxopt='-Werror' # Fail on all warnings
+build --host_cxxopt='-Werror' # Fail on all warnings
+build --cxxopt='-DUSE_STRICT_WARNING' # Enforces usage of grpc::Status
+build --host_cxxopt='-DUSE_STRICT_WARNING' # Enforces usage of grpc::Status
 build --action_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1
+
+# C options
+build --copt='-std=c11'
+build --host_copt='-std=c11'
+build --copt='-Werror' # Fail on all warnings
+build --host_copt='-Werror' # Fail on all warnings
 
 # Do not upload locally executed action results to the remote cache.
 # This should be the default for local builds so local builds cannot poison the remote cache.
