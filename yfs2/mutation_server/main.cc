@@ -30,6 +30,9 @@
 
 ABSL_FLAG(std::string, listen_addr, "0.0.0.0", "Address to listen on");
 ABSL_FLAG(int32_t, listen_port, 6771, "Port to listen on");
+ABSL_FLAG(bool, debug, false, "Enable debug features");
+
+ABSL_FLAG(std::string, etcd_addr, "localhost:2379", "Etcd address");
 
 int main(int argc, char **argv) {
   absl::SetProgramUsageMessage("YFS2 mutation server");
@@ -37,17 +40,34 @@ int main(int argc, char **argv) {
   absl::InitializeLog();
   absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
 
+  bool debug = absl::GetFlag(FLAGS_debug);
+
   grpc::EnableDefaultHealthCheckService(true);
 
-  // Start the mutation server.
+  std::string etcd_addr = absl::GetFlag(FLAGS_etcd_addr);
+  auto etcd = std::make_shared<yfs2::EtcdClient>(etcd_addr);
+
+  auto storage = std::make_shared<yfs2::StorageS3>("mship",
+                                                   debug,
+                                                   "us-east-1",
+                                                   "minioadmin",
+                                                   "minioadmin",
+                                                   "localhost:9100",
+                                                   false);
+
+  auto get_mustafa = storage->Get("Mustafa");
+  if (get_mustafa.ok()) {
+    LOG(INFO) << "Got Mustafa: " << get_mustafa.value();
+  } else {
+    LOG(ERROR) << "Failed to get Mustafa: " << get_mustafa.status();
+  }
+
+  yfs2::mutation_server::MutationServerImpl mutation_server(etcd, storage);
+
   std::string listen_addr = absl::GetFlag(FLAGS_listen_addr);
   int32_t listen_port = absl::GetFlag(FLAGS_listen_port);
   std::string listen_port_str = std::to_string(listen_port);
   std::string addr = listen_addr + ":" + listen_port_str;
-  auto etcd = std::make_shared<yfs2::EtcdClient>("localhost:2379");
-
-  auto storage = std::make_shared<yfs2::StorageS3>();
-  yfs2::mutation_server::MutationServerImpl mutation_server(etcd, storage);
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort(addr, grpc::InsecureServerCredentials());

@@ -237,6 +237,11 @@ http_archive(
 http_archive(
     name = "pugixml",
     build_file = "//third_party:pugixml.BUILD",
+    patch_cmds = [
+        # todo(mustafa): Virtual includes is seriously broken, or I'm doing something wrong
+        # todo(mustafa): but let's just keep this for now.
+        "mkdir src/pugixml && mv src/*.hpp src/pugixml/",
+    ],
     sha256 = "56e43bbe2733cc149c7d50a6d11a65b3c4ed080b16bfa6050154e09b1c320ed0",
     strip_prefix = "pugixml-db78afc2b7d8f043b4bc6b185635d949ea2ed2a8",
     urls = ["https://github.com/zeux/pugixml/archive/db78afc2b7d8f043b4bc6b185635d949ea2ed2a8.tar.gz"],

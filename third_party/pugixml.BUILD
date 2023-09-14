@@ -22,10 +22,11 @@ cc_library(
         "src/pugixml.cpp",
     ],
     hdrs = [
-        "src/pugiconfig.hpp",
-        "src/pugixml.hpp",
+        "src/pugixml/pugiconfig.hpp",
+        "src/pugixml/pugixml.hpp",
     ],
     includes = [
+        "src/pugixml",
         "src",
     ],
     linkstatic = True,

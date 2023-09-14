@@ -17,26 +17,52 @@
 
 #include "yfs2/storage_s3.h"
 
+#include <utility>
+
 namespace yfs2 {
 
-StorageS3::StorageS3() {
-  bucket = "mship";
-  region = "us-east-1";
-  auto base_url = "localhost:9100";
-  auto access_key_id = "minioadmin";
-  auto secret_access_key = "minioadmin";
+StorageS3::StorageS3(std::string bucket_,
+                     bool debug,
+                     std::optional<std::string> region_,
+                     std::optional<std::string> access_key,
+                     std::optional<std::string> secret_key,
+                     std::string endpoint,
+                     bool endpoint_secure) {
+  bucket = std::move(bucket_);
+  url = std::make_shared<minio::s3::BaseUrl>(endpoint);
+  url->https = endpoint_secure;
 
-  url = new minio::s3::BaseUrl(base_url);
-  url->https = false;
+  // If keys are not manually provided, use AWS IAM
+  if (!access_key || !secret_key) {
+    // Set the AWS_REGION environment variable if region is set
+    if (region_) {
+      setenv("AWS_REGION", region_->c_str(), 1);
+    }
 
-  creds = new minio::creds::StaticProvider(access_key_id, secret_access_key);
-  client = std::make_shared<minio::s3::Client>(*url, creds);
-  client->Debug(true);
-}
+    // If region is not set, and AWS_REGION is not set, then
+    // set the default region to us-east-2. We must have a region
+    // set for IAM to work.
+    if (!region_ && !getenv("AWS_REGION")) {
+      setenv("AWS_REGION", "us-east-2", 1);
+    }
+    using IamAwsProvider = minio::creds::IamAwsProvider;
+    creds = std::make_shared<IamAwsProvider>();
+  } else {
+    // Default back to static credentials, and if one of the keys
+    // are null then set them to empty strings.
+    // We'll deal with failures later.
+    auto access_key_id_ = access_key.value_or("");
+    auto secret_access_key_ = secret_key.value_or("");
 
-StorageS3::~StorageS3() {
-  delete creds;
-  delete url;
+    using StaticProvider = minio::creds::StaticProvider;
+    creds = std::make_shared<StaticProvider>(access_key_id_,
+                                                   secret_access_key_);
+  }
+
+  client = std::make_shared<minio::s3::Client>(*url,
+                                               &*creds);
+  client->Debug(debug);
+  region = region_.value_or("us-east-2");
 }
 
 absl::Status StorageS3::Download(const std::string &path,
@@ -60,7 +86,7 @@ absl::Status StorageS3::Download(const std::string &path,
     return absl::AlreadyExistsError("file already exists");
   }
 
-  return absl::UnknownError("unknown error");
+  return absl::InternalError(res.Error().String());
 }
 
 absl::StatusOr<std::string> StorageS3::Get(const std::string &path) {
@@ -85,7 +111,7 @@ absl::StatusOr<std::string> StorageS3::Get(const std::string &path) {
     return absl::NotFoundError("object not found");
   }
 
-  return absl::UnknownError("unknown error");
+  return absl::InternalError(res.Error().String());
 }
 
 }  // namespace yfs2

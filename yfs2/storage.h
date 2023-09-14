@@ -31,23 +31,23 @@ class Storage {
   // Download a file from storage to a specified path.
   virtual absl::Status Download(const std::string &path,
                                 const std::string &dest_path) {
-    return absl::UnimplementedError("Unimplemented");
+    return absl::UnimplementedError("unimplemented");
   }
 
   // Upload a file from a specified path to storage.
   virtual absl::Status Upload(const std::string &path,
                               const std::string &dest_path) {
-    return absl::UnimplementedError("Unimplemented");
+    return absl::UnimplementedError("unimplemented");
   }
 
   // Exists checks if a file exists in storage.
   virtual absl::StatusOr<bool> Exists(const std::string &path) {
-    return absl::UnimplementedError("Unimplemented");
+    return absl::UnimplementedError("unimplemented");
   }
 
   // Get a file's content directly from storage.
   virtual absl::StatusOr<std::string> Get(const std::string &path) {
-    return absl::UnimplementedError("Unimplemented");
+    return absl::UnimplementedError("unimplemented");
   }
 };
 

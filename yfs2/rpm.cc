@@ -17,9 +17,7 @@
 
 #include "yfs2/rpm.h"
 
-#include <fcntl.h>
-
-#include <rpm/rpmts.h>
+#include "rpm/rpmts.h"
 
 namespace yfs2 {
 

@@ -31,8 +31,14 @@ namespace yfs2 {
 
 class StorageS3 : public Storage {
  public:
-  StorageS3();
-  virtual ~StorageS3();
+  explicit StorageS3(std::string bucket,
+                     bool debug = false,
+                     std::optional<std::string> region = std::nullopt,
+                     std::optional<std::string> access_key = std::nullopt,
+                     std::optional<std::string> secret_key = std::nullopt,
+                     std::string endpoint = "s3.amazonaws.com",
+                     bool endpoint_secure = true);
+  virtual ~StorageS3() = default;
 
   // Download a file from storage to a specified path.
   absl::Status Download(const std::string &path,
@@ -45,8 +51,9 @@ class StorageS3 : public Storage {
   std::string bucket;
   std::shared_ptr<minio::s3::Client> client;
   // minio client uses raw pointers for some reason?
-  minio::creds::StaticProvider *creds;
-  minio::s3::BaseUrl *url;
+  // we'll keep them as shared_ptr's and dereference them
+  std::shared_ptr<minio::creds::Provider> creds;
+  std::shared_ptr<minio::s3::BaseUrl> url;
 };
 
 }  // namespace yfs2
