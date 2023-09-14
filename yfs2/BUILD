@@ -21,29 +21,43 @@ cc_library(
     srcs = [
         "etcdv3.cc",
         "etcdv3_lease.cc",
+        "etcdv3_lock.cc",
     ],
     hdrs = [
         "etcdv3.h",
         "etcdv3_lease.h",
+        "etcdv3_lock.h",
     ],
     visibility = ["//visibility:public"],
     deps = [
         "//third_party/etcd/api/etcdserverpb:rpc",
+        "//third_party/etcd/api/v3lockpb:v3lock",
     ],
 )
 
 cc_library(
     name = "rpm",
-    srcs = ["rpm.cc"],
-    hdrs = ["rpm.h"],
+    srcs = [
+        "rpm.cc",
+    ],
+    hdrs = [
+        "rpm.h",
+    ],
     visibility = ["//visibility:public"],
-    deps = ["@rpm"],
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@rpm",
+    ],
 )
 
 cc_library(
     name = "storage",
     hdrs = ["storage.h"],
     visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/status",
+    ],
 )
 
 cc_library(
@@ -53,7 +67,8 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":storage",
-        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings:str_format",
         "@minio_cpp",
     ],

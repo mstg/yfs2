@@ -12,16 +12,19 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "yfs2/etcdv3.h"
 
-#include <grpcpp/grpcpp.h>
+#include <memory>
+#include <string>
+
+#include "grpcpp/grpcpp.h"
 
 namespace yfs2 {
 
-EtcdClient::EtcdClient(const std::string& endpoint) {
+EtcdClient::EtcdClient(const std::string &endpoint) {
   // Create clients
   // First a channel, then stubs
   channel = grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials());
@@ -29,31 +32,50 @@ EtcdClient::EtcdClient(const std::string& endpoint) {
   kv = etcdserverpb::KV::NewStub(channel);
 }
 
-std::optional<std::string> EtcdClient::GetKeyValue(const std::string& key) {
+grpc::Status EtcdClient::GetKeyValue(const std::string &key,
+                                     std::optional<std::string> *value) {
   auto req = etcdserverpb::RangeRequest();
   req.mutable_key()->assign(key);
   etcdserverpb::RangeResponse resp;
   grpc::ClientContext ctx;
-  kv->Range(&ctx, req, &resp);
 
-  if (resp.kvs_size() == 0) {
-    return std::nullopt;
+  auto status = kv->Range(&ctx, req, &resp);
+  if (!status.ok()) {
+    return status;
   }
 
-  return resp.kvs(0).value();
+  if (resp.kvs_size() == 0) {
+    *value = std::nullopt;
+  } else {
+    *value = resp.kvs(0).value();
+  }
+
+  return status;
 }
 
-void EtcdClient::PutKeyValue(const std::string& key, const std::string& value) {
+grpc::Status EtcdClient::PutKeyValue(const std::string &key,
+                                     const std::string &value,
+                                     const std::optional<int64_t> &lease_id) {
   auto req = etcdserverpb::PutRequest();
   req.mutable_key()->assign(key);
   req.mutable_value()->assign(value);
+
+  if (lease_id.has_value()) {
+    req.set_lease(lease_id.value());
+  }
+
   etcdserverpb::PutResponse resp;
   grpc::ClientContext ctx;
-  kv->Put(&ctx, req, &resp);
+
+  return kv->Put(&ctx, req, &resp);
+}
+
+std::shared_ptr<EtcdLock> EtcdClient::CreateLock() {
+  return std::make_shared<yfs2::EtcdLock>(channel);
 }
 
 std::shared_ptr<yfs2::EtcdLease> EtcdClient::CreateLease(int ttl) {
   return std::make_shared<yfs2::EtcdLease>(channel, ttl);
 }
 
-}
+}  // namespace yfs2

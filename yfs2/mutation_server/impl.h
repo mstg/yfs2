@@ -12,28 +12,29 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #ifndef YFS2_MUTATION_SERVER_IMPL_H_
 #define YFS2_MUTATION_SERVER_IMPL_H_
 
+#include <memory>
+
 #include "yfs2/etcdv3.h"
+#include "yfs2/storage.h"
 #include "yumrepofs/v2/mutation_server.grpc.pb.h"
 
 namespace yfs2::mutation_server {
 
 class MutationServerImpl : public yumrepofs::v2::MutationServer::Service {
  public:
-  MutationServerImpl();
-
-  grpc::Status Hello(grpc::ServerContext *context,
-                     const yumrepofs::v2::HelloRequest *request,
-                     yumrepofs::v2::HelloResponse *response) override;
+  explicit MutationServerImpl(std::shared_ptr<EtcdClient> _etcd,
+                              std::shared_ptr<Storage> _storage);
  private:
   std::shared_ptr<yfs2::EtcdClient> etcd;
+  std::shared_ptr<yfs2::Storage> storage;
 };
 
-}
+}  // namespace yfs2::mutation_server
 
-#endif
+#endif  // YFS2_MUTATION_SERVER_IMPL_H_

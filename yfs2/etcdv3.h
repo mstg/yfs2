@@ -12,28 +12,38 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #ifndef YFS2_ETCDV3_H_
 #define YFS2_ETCDV3_H_
 
+#include <memory>
+#include <string>
 #include <vector>
 
-#include "yfs2/etcdv3_lease.h"
-
 #include "third_party/etcd/api/etcdserverpb/rpc.grpc.pb.h"
+#include "yfs2/etcdv3_lease.h"
+#include "yfs2/etcdv3_lock.h"
 
 namespace yfs2 {
 
 class EtcdClient {
  public:
-  explicit EtcdClient(const std::string& endpoint);
+  explicit EtcdClient(const std::string &endpoint);
   virtual ~EtcdClient() = default;
 
   // Helper methods
-  virtual std::optional<std::string> GetKeyValue(const std::string& key);
-  virtual void PutKeyValue(const std::string& key, const std::string& value);
+  virtual grpc::Status GetKeyValue(
+      const std::string &key,
+      std::optional<std::string> *value);
+  virtual grpc::Status PutKeyValue(
+      const std::string &key,
+      const std::string &value,
+      const std::optional<int64_t> &lease_id);
+
+  // Lock helper
+  virtual std::shared_ptr<EtcdLock> CreateLock();
 
   // Lease helper
   virtual std::shared_ptr<EtcdLease> CreateLease(int ttl);
@@ -42,6 +52,6 @@ class EtcdClient {
   std::unique_ptr<etcdserverpb::KV::Stub> kv;
 };
 
-}
+}  // namespace yfs2
 
-#endif
+#endif  // YFS2_ETCDV3_H_

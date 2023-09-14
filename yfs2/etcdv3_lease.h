@@ -12,12 +12,13 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #ifndef YFS2_ETCDV3_LEASE_H_
 #define YFS2_ETCDV3_LEASE_H_
 
+#include <memory>
 #include <thread>
 
 #include "third_party/etcd/api/etcdserverpb/rpc.grpc.pb.h"
@@ -28,15 +29,19 @@ class EtcdLease {
  public:
   explicit EtcdLease(std::shared_ptr<grpc::Channel> channel, int ttl);
   virtual ~EtcdLease() = default;
-  virtual void Close();
+  virtual grpc::Status Start();
+  virtual int64_t GetLeaseId();
+  virtual grpc::Status Close();
  private:
   std::shared_ptr<grpc::Channel> channel;
   std::unique_ptr<etcdserverpb::Lease::Stub> lease;
-  int64_t lease_id;
+  int ttl;
+  int64_t lease_id = 0;
   std::thread keepalive_thread;
+  grpc::Status keepalive_status = grpc::Status::OK;
   bool active;
 };
 
-}
+}  // namespace yfs2
 
-#endif //YFS2_ETCDV3_LEASE_H_
+#endif  // YFS2_ETCDV3_LEASE_H_

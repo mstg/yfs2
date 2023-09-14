@@ -12,11 +12,18 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#ifndef YFS2_STORAGE_MINIO_H_
-#define YFS2_STORAGE_MINIO_H_
+#ifndef YFS2_STORAGE_S3_H_
+#define YFS2_STORAGE_S3_H_
+
+#include <memory>
+#include <string>
+
+#include "minio/client.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 
 #include "yfs2/storage.h"
 
@@ -25,18 +32,23 @@ namespace yfs2 {
 class StorageS3 : public Storage {
  public:
   StorageS3();
-  virtual ~StorageS3() = default;
+  virtual ~StorageS3();
 
   // Download a file from storage to a specified path.
-  storage_errno_t Download(const std::string &path, const std::string &dest_path) override;
+  absl::Status Download(const std::string &path,
+                        const std::string &dest_path) override;
+
+  // Get a file's content directly from storage.
+  absl::StatusOr<std::string> Get(const std::string &path) override;
  private:
-  std::string base_url;
   std::string region;
   std::string bucket;
-  std::string access_key_id;
-  std::string secret_access_key;
+  std::shared_ptr<minio::s3::Client> client;
+  // minio client uses raw pointers for some reason?
+  minio::creds::StaticProvider *creds;
+  minio::s3::BaseUrl *url;
 };
 
-}
+}  // namespace yfs2
 
-#endif
+#endif  // YFS2_STORAGE_S3_H_

@@ -12,8 +12,8 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #ifndef YFS2_STORAGE_H_
 #define YFS2_STORAGE_H_
@@ -21,27 +21,36 @@
 #include <cstdint>
 #include <string>
 
-namespace yfs2 {
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 
-typedef int32_t storage_errno_t;
-static const storage_errno_t STORAGE_OK = 0;
-static const storage_errno_t STORAGE_OBJ_NOT_FOUND = -1;
-static const storage_errno_t STORAGE_ERROR = -2;
+namespace yfs2 {
 
 class Storage {
  public:
   // Download a file from storage to a specified path.
-  virtual storage_errno_t Download(const std::string &path, const std::string &dest_path) {
-    return STORAGE_ERROR;
-  };
+  virtual absl::Status Download(const std::string &path,
+                                const std::string &dest_path) {
+    return absl::UnimplementedError("Unimplemented");
+  }
 
-  // // Upload a file from a specified path to storage.
-  // virtual storage_errno_t Upload(const std::string &path, const std::string &dest_path) = 0;
+  // Upload a file from a specified path to storage.
+  virtual absl::Status Upload(const std::string &path,
+                              const std::string &dest_path) {
+    return absl::UnimplementedError("Unimplemented");
+  }
 
-  // // Exists checks if a file exists in storage.
-  // virtual storage_errno_t Exists(const std::string &path) = 0;
+  // Exists checks if a file exists in storage.
+  virtual absl::StatusOr<bool> Exists(const std::string &path) {
+    return absl::UnimplementedError("Unimplemented");
+  }
+
+  // Get a file's content directly from storage.
+  virtual absl::StatusOr<std::string> Get(const std::string &path) {
+    return absl::UnimplementedError("Unimplemented");
+  }
 };
 
-}
+}  // namespace yfs2
 
-#endif
+#endif  // YFS2_STORAGE_H_

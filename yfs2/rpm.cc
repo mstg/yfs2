@@ -12,33 +12,18 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+#include "yfs2/rpm.h"
 
 #include <fcntl.h>
 
 #include <rpm/rpmts.h>
 
-#include "yfs2/rpm.h"
-
 namespace yfs2 {
 
-std::string RpmErrorToString(rpm_errno_t error) {
-  switch (error) {
-    case RPM_OK:return "Success";
-    case RPM_FILE_NOT_FOUND:return "File not found";
-    case RPM_ERROR:return "Error";
-    case RPM_HEADER_NOT_FOUND:return "Header not found";
-    case RPM_NOT_TRUSTED:return "Not trusted";
-    case RPM_NO_KEY:return "No key";
-    default:return "Unknown error";
-  }
-}
-
 Rpm::Rpm(bool ignore_signature) {
-  fd = nullptr;
-  header = nullptr;
-
   ts = rpmtsCreate();
 
   rpmVSFlags vs_flags = 0;
@@ -65,42 +50,39 @@ Rpm::~Rpm() {
   rpmtsFree(ts);
 }
 
-rpm_errno_t Rpm::Init(const std::string &rpm_path) {
+absl::Status Rpm::Init(const std::string &rpm_path) {
   // Open the file
   fd = Fopen(rpm_path.c_str(), "r");
 
   // Check error
   int fe = Ferror(fd);
   if (fe == ENOENT) {
-    return RPM_FILE_NOT_FOUND;
+    return absl::NotFoundError("file not found");
   } else if (fe != 0) {
-    return RPM_ERROR;
+    return absl::InternalError("unknown error");
   }
 
   // Open the rpm
   rpmRC read_rc = rpmReadPackageFile(ts, fd, rpm_path.c_str(), &header);
   switch (read_rc) {
     case RPMRC_OK:break;
-    case RPMRC_NOTFOUND:return RPM_HEADER_NOT_FOUND;
-    case RPMRC_NOTTRUSTED:return RPM_NOT_TRUSTED;
-    case RPMRC_NOKEY:return RPM_NO_KEY;
-    default:return RPM_ERROR;
+    case RPMRC_NOTFOUND:return absl::InvalidArgumentError("header not found");
+    case RPMRC_NOTTRUSTED:return absl::InvalidArgumentError("not trusted");
+    case RPMRC_NOKEY:return absl::InvalidArgumentError("no key");
+    default:return absl::InternalError("unknown error");
   }
 
-  return RPM_OK;
+  return absl::OkStatus();
 }
 
-rpm_errno_t Rpm::GetHeaderStr(const rpmTagVal &tag, std::string *header_value) {
+absl::StatusOr<std::string> Rpm::GetHeaderStr(const rpmTagVal &tag) {
   // Get the header
   const char *header_value_c = headerGetString(header, tag);
   if (header_value_c == nullptr) {
-    return RPM_HEADER_NOT_FOUND;
+    return absl::NotFoundError("header not found");
   }
 
-  // Copy the header
-  *header_value = header_value_c;
-
-  return RPM_OK;
+  return std::string(header_value_c);
 }
 
-}
+}  // namespace yfs2

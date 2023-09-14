@@ -34,8 +34,11 @@ cc_binary(
     srcs = ["main.cc"],
     deps = [
         ":mutation_server_lib",
-        "@com_github_gflags_gflags//:gflags",
-        "@com_github_google_glog//:glog",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:flags",
+        "@com_google_absl//absl/log:initialize",
     ],
 )
