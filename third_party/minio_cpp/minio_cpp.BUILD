@@ -20,21 +20,30 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 copy_file(
     name = "config",
     src = "@//third_party/minio_cpp:config.h",
-    out = "include/config.h",
+    out = "include/minio/config.h",
 )
 
 genrule(
     name = "patched_utils_h",
-    srcs = ["include/utils.h"],
+    srcs = ["include/minio/utils.h"],
     outs = ["include2/utils.h"],
     cmd = "echo '#include <openssl/mem.h>\n#include <openssl/bio.h>' > $@ && cat $< >> $@",
 )
 
 genrule(
     name = "patched_baseclient_h",
-    srcs = ["include/baseclient.h"],
+    srcs = ["include/minio/baseclient.h"],
     outs = ["include2/baseclient.h"],
     cmd = "echo '#define DEFAULT_USER_AGENT \"MinIO (Bazel-YFS2) minio-cpp/X-GIT\"' > $@ && cat $< >> $@",
+)
+
+cc_library(
+    name = "custom_headers",
+    srcs = [
+        ":include2/utils.h",
+        ":include2/baseclient.h",
+    ],
+    visibility = ["//visibility:private"],
 )
 
 cc_library(
@@ -52,21 +61,19 @@ cc_library(
         "src/utils.cc",
     ],
     hdrs = [
-        "include/args.h",
-        "include/client.h",
-        "include/credentials.h",
-        "include/error.h",
-        "include/http.h",
-        "include/providers.h",
-        "include/request.h",
-        "include/response.h",
-        "include/select.h",
-        "include/signer.h",
-        "include/sse.h",
-        "include/types.h",
-        ":include/config.h",
-        ":include2/utils.h",
-        ":include2/baseclient.h",
+        "include/minio/args.h",
+        "include/minio/client.h",
+        "include/minio/credentials.h",
+        "include/minio/error.h",
+        "include/minio/http.h",
+        "include/minio/providers.h",
+        "include/minio/request.h",
+        "include/minio/response.h",
+        "include/minio/select.h",
+        "include/minio/signer.h",
+        "include/minio/sse.h",
+        "include/minio/types.h",
+        ":include/minio/config.h",
     ],
     deps = [
         "@curlpp",
@@ -75,10 +82,11 @@ cc_library(
         "@boringssl//:ssl",
         "@boringssl//:crypto",
         "@pugixml",
+        ":custom_headers",
     ],
     copts = [
         "-std=c++17",
-        "-Iexternal/minio_cpp/include",
+        "-Iexternal/minio_cpp/include/minio",
         "-Iexternal/minio_cpp/include2",
         # This is a third party library, so don't need to pollute
         # build output with warnings.
@@ -94,6 +102,7 @@ cc_library(
     ],
     includes = [
         "include",
+        "include/minio",
         "include2",
     ],
     linkstatic = True,
