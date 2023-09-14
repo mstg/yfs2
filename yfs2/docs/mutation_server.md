@@ -5,7 +5,7 @@ This component is responsible for all changes that are going to be made to all r
 The process should be as follows:
 * Client starts a new transaction using StartTransaction
   * This returns a transaction ID and the transaction is valid for an hour
-* Client starts streaming RPM chunks using UploadRpm
+* Client starts streaming RPM chunks using UploadRpm (ideally 150MB at a time)
 * If module RPM, then client uploads module metadata using UploadModuleMetadata
   * All module artifacts MUST be uploaded before calling UploadModuleMetadata
   * If module RPMs are uploaded but no module metadata is uploaded, then the transaction will fail
