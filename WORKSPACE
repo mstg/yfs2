@@ -12,12 +12,43 @@ http_archive(
 )
 
 # ------------------------------------------------------------------------------
+# com_google_absl
+# ------------------------------------------------------------------------------
+# maintenance-git(github.com/abseil/abseil-cpp, master)
+http_archive(
+    name = "com_google_absl",
+    patch_cmds = [
+        # So either Google made a mistake or the set up here is wrong.
+        # Let's just cast the signed value to unsigned to remove the warning(error) for now.
+        "sed -i.bak 's/return vgetq_lane_s64(vreinterpretq_s64_u64(l), imm);/return (uint64_t)vgetq_lane_s64(vreinterpretq_s64_u64(l), imm);/' absl/crc/internal/crc32_x86_arm_combined_simd.h",
+    ],
+    sha256 = "6258e70f2321bdb75960a06c5abcbfcae241f0110f26b4fe3b58f25b3f28c778",
+    strip_prefix = "abseil-cpp-9e1789ffea47fdeb3133aa42aa9592f3673fb6ed",
+    urls = [
+        "https://github.com/abseil/abseil-cpp/archive/9e1789ffea47fdeb3133aa42aa9592f3673fb6ed.tar.gz",
+    ],
+)
+
+# ------------------------------------------------------------------------------
+# com_google_googletest
+# ------------------------------------------------------------------------------
+# maintenance-git(github.com/google/googletest, main)
+http_archive(
+    name = "com_google_googletest",
+    sha256 = "da3317484dc45668fd771697f7d9d58824a6065a445794e770aa681942f54476",
+    strip_prefix = "googletest-eab0e7e289db13eabfc246809b0284dac02a369d",
+    urls = [
+        "https://github.com/google/googletest/archive/eab0e7e289db13eabfc246809b0284dac02a369d.tar.gz",
+    ],
+)
+
+# ------------------------------------------------------------------------------
 # boringssl
 # ------------------------------------------------------------------------------
+# maintenance-git(boringssl.googlesource.com/boringssl, main-with-bazel)
 git_repository(
     name = "boringssl",
     build_file = "//third_party:boringssl.BUILD",
-    # maintenance-git(boringssl.googlesource.com/boringssl, main-with-bazel)
     commit = "9f9457790106e37402dfaae893e24d80a8666edd",
     remote = "https://boringssl.googlesource.com/boringssl",
 )
@@ -79,6 +110,10 @@ _GRPC_VERSION = "1.52.1"  # https://github.com/grpc/grpc/releases/tag/v1.52.1
 
 http_archive(
     name = "com_github_grpc_grpc",
+    patch_args = ["-p1"],
+    patches = [
+        "//third_party:grpc-missing-abseil-include.patch",
+    ],
     sha256 = "ec125d7fdb77ecc25b01050a0d5d32616594834d3fe163b016768e2ae42a2df6",
     strip_prefix = "grpc-" + _GRPC_VERSION,
     urls = ["https://github.com/grpc/grpc/archive/refs/tags/v" + _GRPC_VERSION + ".tar.gz"],
@@ -91,26 +126,6 @@ grpc_deps()
 load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 
 grpc_extra_deps()
-
-# ------------------------------------------------------------------------------
-# gflags
-# ------------------------------------------------------------------------------
-http_archive(
-    name = "com_github_gflags_gflags",
-    sha256 = "34af2f15cf7367513b352bdcd2493ab14ce43692d2dcd9dfc499492966c64dcf",
-    strip_prefix = "gflags-2.2.2",
-    urls = ["https://github.com/gflags/gflags/archive/v2.2.2.tar.gz"],
-)
-
-# ------------------------------------------------------------------------------
-# glog
-# ------------------------------------------------------------------------------
-http_archive(
-    name = "com_github_google_glog",
-    sha256 = "122fb6b712808ef43fbf80f75c52a21c9760683dae470154f02bddfc61135022",
-    strip_prefix = "glog-0.6.0",
-    urls = ["https://github.com/google/glog/archive/v0.6.0.zip"],
-)
 
 # ------------------------------------------------------------------------------
 # zlib
@@ -233,6 +248,11 @@ http_archive(
 http_archive(
     name = "minio_cpp",
     build_file = "//third_party/minio_cpp:minio_cpp.BUILD",
+    patch_cmds = [
+        # todo(mustafa): Virtual includes is seriously broken, or I'm doing something wrong
+        # todo(mustafa): but let's just keep this for now.
+        "mkdir include/minio && mv include/*.h include/minio/",
+    ],
     sha256 = "42eccc8188fb084a21c9bd79e54fa91d3a8f93bba44de8e516263c14916e3f17",
     strip_prefix = "minio-cpp-c62d3b7f041f869714a8661d1ca0501e816c2ab3",
     urls = ["https://github.com/minio/minio-cpp/archive/c62d3b7f041f869714a8661d1ca0501e816c2ab3.tar.gz"],

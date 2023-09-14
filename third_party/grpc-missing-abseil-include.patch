@@ -1,0 +1,25 @@
+From a8956cf1680eafe744a4e5400a42fdf1206b2198 Mon Sep 17 00:00:00 2001
+From: Mustafa Gezen <mustafa@gezen.no>
+Date: Thu, 14 Sep 2023 02:42:10 +0200
+Subject: [PATCH] Add missing Abseil include
+
+---
+ src/core/lib/iomgr/tcp_posix.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/core/lib/iomgr/tcp_posix.cc b/src/core/lib/iomgr/tcp_posix.cc
+index 623534e..43ff809 100644
+--- a/src/core/lib/iomgr/tcp_posix.cc
++++ b/src/core/lib/iomgr/tcp_posix.cc
+@@ -48,6 +48,8 @@
+ #include <grpc/support/sync.h>
+ #include <grpc/support/time.h>
+
++#include "absl/strings/str_cat.h"
++
+ #include "src/core/lib/address_utils/sockaddr_utils.h"
+ #include "src/core/lib/debug/event_log.h"
+ #include "src/core/lib/debug/stats.h"
+--
+2.37.1 (Apple Git-137.1)
+
