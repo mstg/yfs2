@@ -370,6 +370,9 @@ cc_library(
             "-DHAVE_LIBZ",
             "-DHAVE_ZLIB_H",
             "-Wno-string-plus-int",
+            # We don't care about curl's warnings.
+            "-Wno-deprecated-declarations",
+            "-Wno-unused-variable",
         ],
     }) + select({
         "@platforms//os:macos": [
