@@ -39,6 +39,7 @@ class EtcdClient {
   virtual grpc::Status PutKeyValue(const std::string &key,
                                    const std::string &value,
                                    const std::optional<int64_t> &lease_id);
+  virtual grpc::Status RemoveLeaseFromKey(const std::string &key);
 
   // Lock helper
   virtual std::shared_ptr<EtcdLock> CreateLock();

@@ -35,7 +35,7 @@ EtcdClient::EtcdClient(const std::string &endpoint) {
 grpc::Status EtcdClient::GetKeyValue(const std::string &key,
                                      std::optional<std::string> *value) {
   auto req = etcdserverpb::RangeRequest();
-  req.mutable_key()->assign(key);
+  req.set_key(key);
   etcdserverpb::RangeResponse resp;
   grpc::ClientContext ctx;
 
@@ -57,12 +57,23 @@ grpc::Status EtcdClient::PutKeyValue(const std::string &key,
                                      const std::string &value,
                                      const std::optional<int64_t> &lease_id) {
   auto req = etcdserverpb::PutRequest();
-  req.mutable_key()->assign(key);
-  req.mutable_value()->assign(value);
+  req.set_key(key);
+  req.set_value(value);
 
   if (lease_id.has_value()) {
     req.set_lease(lease_id.value());
   }
+
+  etcdserverpb::PutResponse resp;
+  grpc::ClientContext ctx;
+
+  return kv->Put(&ctx, req, &resp);
+}
+
+grpc::Status EtcdClient::RemoveLeaseFromKey(const std::string &key) {
+  auto req = etcdserverpb::PutRequest();
+  req.set_key(key);
+  req.set_ignore_value(true);
 
   etcdserverpb::PutResponse resp;
   grpc::ClientContext ctx;
