@@ -53,7 +53,10 @@ cc_library(
 
 cc_library(
     name = "storage",
-    hdrs = ["storage.h"],
+    hdrs = [
+        "storage.h",
+        "storage_part.h",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/status",

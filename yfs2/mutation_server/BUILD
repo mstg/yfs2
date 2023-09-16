@@ -34,6 +34,7 @@ cc_binary(
     srcs = ["main.cc"],
     deps = [
         ":mutation_server_lib",
+        "//yfs2/common",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",

@@ -18,34 +18,32 @@
 #include "absl/log/log.h"
 #include "absl/log/initialize.h"
 #include "absl/log/globals.h"
-#include "absl/flags/flag.h"
 #include "absl/flags/usage.h"
 #include "absl/flags/parse.h"
 #include "grpcpp/grpcpp.h"
 #include "grpcpp/health_check_service_interface.h"
 
+#include "yfs2/common/flag.h"
 #include "yfs2/mutation_server/impl.h"
 #include "yfs2/storage_s3.h"
 
-ABSL_FLAG(std::string, listen_addr, "[::]", "Address to listen on");
-ABSL_FLAG(int32_t, listen_port, 6771, "Port to listen on");
-ABSL_FLAG(bool, debug, false, "Enable debug features");
+YFS2_STRING_FLAG(listen_addr, "[::]", "Address to listen on");
+YFS2_INT32_FLAG(listen_port, 6771, "Port to listen on");
+YFS2_BOOL_FLAG(debug, false, "Enable debug features");
 
-ABSL_FLAG(std::string, etcd_addr, "localhost:2379", "Etcd address");
+YFS2_STRING_FLAG(etcd_addr, "localhost:2379", "Etcd address");
 
 // Storage options
-ABSL_FLAG(std::string, s3_bucket, "", "S3 bucket");
-ABSL_FLAG(std::string, s3_region, "us-east-1", "S3 region");
-ABSL_FLAG(std::optional<std::string>,
-          s3_access_key_id,
-          std::nullopt,
-          "S3 access key ID");
-ABSL_FLAG(std::optional<std::string>,
-          s3_secret_access_key,
-          std::nullopt,
-          "S3 secret access key");
-ABSL_FLAG(std::string, s3_endpoint, "s3.amazonaws.com", "S3 endpoint");
-ABSL_FLAG(bool, s3_endpoint_secure, true, "S3 endpoint secure");
+YFS2_STRING_FLAG(s3_bucket, "", "S3 bucket");
+YFS2_STRING_FLAG(s3_region, "us-east-1", "S3 region");
+YFS2_OPTIONAL_STRING_FLAG(s3_access_key_id,
+                          std::nullopt,
+                          "S3 access key ID");
+YFS2_OPTIONAL_STRING_FLAG(s3_secret_access_key,
+                          std::nullopt,
+                          "S3 secret access key");
+YFS2_STRING_FLAG(s3_endpoint, "s3.amazonaws.com", "S3 endpoint");
+YFS2_BOOL_FLAG(s3_endpoint_secure, true, "S3 endpoint secure");
 
 int main(int argc, char **argv) {
   absl::SetProgramUsageMessage("YFS2 mutation server");
@@ -79,6 +77,13 @@ int main(int argc, char **argv) {
                                                    s3_secret_access_key,
                                                    s3_endpoint,
                                                    s3_endpoint_secure);
+
+  auto get_mustafa = storage->Get("Mustafa");
+  if (get_mustafa.ok()) {
+    LOG(INFO) << "Mustafa: " << get_mustafa.value();
+  } else {
+    LOG(ERROR) << "Mustafa not found";
+  }
 
   yfs2::mutation_server::MutationServerImpl mutation_server(etcd, storage);
 
