@@ -20,9 +20,12 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+
+#include "yfs2/storage_part.h"
 
 namespace yfs2 {
 
@@ -56,10 +59,17 @@ class Storage {
   }
 
   // UploadPart uploads a part to a multipart upload session.
-  virtual absl::Status UploadPart(const std::string &path,
-                                  const std::string &upload_id,
-                                  const std::string &part_number,
-                                  const std::string &content) {
+  virtual absl::StatusOr<StoragePart> UploadPart(const std::string &path,
+                                                 const std::string &upload_id,
+                                                 const uint32_t &part_number,
+                                                 const std::string &content) {
+    return absl::UnimplementedError("unimplemented");
+  }
+
+  // CompleteMultipartUpload completes a multipart upload session.
+  virtual absl::Status CompleteMultipartUpload(const std::string &path,
+                                               const std::string &upload_id,
+                                               const std::vector<StoragePart> &parts) {
     return absl::UnimplementedError("unimplemented");
   }
 };
