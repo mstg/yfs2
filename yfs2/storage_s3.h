@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "minio/client.h"
 #include "absl/status/status.h"
@@ -34,9 +35,9 @@ class StorageS3 : public Storage {
   explicit StorageS3(std::string bucket,
                      bool debug = false,
                      std::optional<std::string> region = std::nullopt,
-                     std::optional<std::string> access_key = std::nullopt,
-                     std::optional<std::string> secret_key = std::nullopt,
-                     std::string endpoint = "s3.amazonaws.com",
+                     const std::optional<std::string>& access_key = std::nullopt,
+                     const std::optional<std::string>& secret_key = std::nullopt,
+                     const std::string& endpoint = "s3.amazonaws.com",
                      bool endpoint_secure = true);
   virtual ~StorageS3() = default;
 
@@ -46,6 +47,20 @@ class StorageS3 : public Storage {
 
   // Get a file's content directly from storage.
   absl::StatusOr<std::string> Get(const std::string &path) override;
+
+  // StartMultipartUpload creates a multipart upload session.
+  absl::StatusOr<std::string> StartMultipartUpload(const std::string &path) override;
+
+  // UploadPart uploads a part to a multipart upload session.
+  absl::StatusOr<StoragePart> UploadPart(const std::string &path,
+                                         const std::string &upload_id,
+                                         const uint32_t &part_number,
+                                         const std::string &content) override;
+
+  // CompleteMultipartUpload completes a multipart upload session.
+  absl::Status CompleteMultipartUpload(const std::string &path,
+                                       const std::string &upload_id,
+                                       const std::vector<StoragePart> &parts) override;
 
  private:
   std::string region;

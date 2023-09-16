@@ -17,6 +17,7 @@
 
 #include "yfs2/storage_s3.h"
 
+#include <list>
 #include <utility>
 
 namespace yfs2 {
@@ -24,9 +25,9 @@ namespace yfs2 {
 StorageS3::StorageS3(std::string bucket_,
                      bool debug,
                      std::optional<std::string> region_,
-                     std::optional<std::string> access_key,
-                     std::optional<std::string> secret_key,
-                     std::string endpoint,
+                     const std::optional<std::string>& access_key,
+                     const std::optional<std::string>& secret_key,
+                     const std::string& endpoint,
                      bool endpoint_secure) {
   bucket = std::move(bucket_);
   url = std::make_shared<minio::s3::BaseUrl>(endpoint);
@@ -109,6 +110,66 @@ absl::StatusOr<std::string> StorageS3::Get(const std::string &path) {
 
   if (res.Error().String().find("NoSuchKey") != std::string::npos) {
     return absl::NotFoundError("object not found");
+  }
+
+  return absl::InternalError(res.Error().String());
+}
+
+absl::StatusOr<std::string> StorageS3::StartMultipartUpload(const std::string &path) {
+  minio::s3::CreateMultipartUploadArgs args;
+  args.bucket = bucket;
+  args.region = region;
+  args.object = path;
+  auto res = client->CreateMultipartUpload(args);
+  if (res) {
+    return res.upload_id;
+  }
+
+  return absl::InternalError(res.Error().String());
+}
+
+absl::StatusOr<StoragePart> StorageS3::UploadPart(const std::string &path,
+                                                  const std::string &upload_id,
+                                                  const uint32_t &part_number,
+                                                  const std::string &content) {
+  minio::s3::UploadPartArgs args;
+  args.bucket = bucket;
+  args.region = region;
+  args.object = path;
+  args.upload_id = upload_id;
+  args.part_number = part_number;
+  args.data = content;
+  auto res = client->UploadPart(args);
+  if (res) {
+    StoragePart part(part_number, res.etag);
+    return part;
+  }
+
+  return absl::InternalError(res.Error().String());
+}
+
+absl::Status StorageS3::CompleteMultipartUpload(const std::string &path,
+                                                const std::string &upload_id,
+                                                const std::vector<StoragePart> &parts) {
+  minio::s3::CompleteMultipartUploadArgs args;
+  args.bucket = bucket;
+  args.region = region;
+  args.object = path;
+  args.upload_id = upload_id;
+
+  std::list<minio::s3::Part> minio_parts;
+  for (const auto &part : parts) {
+    minio::s3::Part minio_part;
+    minio_part.number = part.number;
+    minio_part.etag = part.etag;
+    minio_parts.push_back(minio_part);
+  }
+
+  args.parts = minio_parts;
+
+  auto res = client->CompleteMultipartUpload(args);
+  if (res) {
+    return absl::OkStatus();
   }
 
   return absl::InternalError(res.Error().String());
