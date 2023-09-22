@@ -22,9 +22,12 @@
 #include <string>
 #include <vector>
 
-#include "third_party/etcd/api/etcdserverpb/rpc.grpc.pb.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+
 #include "yfs2/etcdv3_lease.h"
 #include "yfs2/etcdv3_lock.h"
+#include "third_party/etcd/api/etcdserverpb/rpc.grpc.pb.h"
 
 namespace yfs2 {
 
@@ -34,12 +37,12 @@ class EtcdClient {
   virtual ~EtcdClient() = default;
 
   // Helper methods
-  virtual grpc::Status GetKeyValue(const std::string &key,
-                                   std::optional<std::string> *value);
-  virtual grpc::Status PutKeyValue(const std::string &key,
+  virtual absl::StatusOr<std::string> GetKeyValue(const std::string &key);
+  virtual absl::StatusOr<std::vector<std::string>> GetKeyValuesWithPrefix(const std::string &prefix);
+  virtual absl::Status PutKeyValue(const std::string &key,
                                    const std::string &value,
                                    const std::optional<int64_t> &lease_id);
-  virtual grpc::Status RemoveLeaseFromKey(const std::string &key);
+  virtual absl::Status RemoveLeaseFromKey(const std::string &key);
 
   // Lock helper
   virtual std::shared_ptr<EtcdLock> CreateLock();

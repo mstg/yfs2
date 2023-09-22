@@ -21,6 +21,8 @@
 
 #include "grpcpp/grpcpp.h"
 
+#include "yfs2/common/status_converter.h"
+
 namespace yfs2 {
 
 EtcdLock::EtcdLock(std::shared_ptr<grpc::Channel> channel) {
@@ -28,7 +30,7 @@ EtcdLock::EtcdLock(std::shared_ptr<grpc::Channel> channel) {
   this->lock = v3lockpb::Lock::NewStub(this->channel);
 }
 
-grpc::Status EtcdLock::Lock(const std::string &name, const int64_t &lease_id) {
+absl::Status EtcdLock::Lock(const std::string &name, const int64_t &lease_id) {
   grpc::ClientContext context;
   v3lockpb::LockRequest request;
   v3lockpb::LockResponse response;
@@ -36,20 +38,22 @@ grpc::Status EtcdLock::Lock(const std::string &name, const int64_t &lease_id) {
   request.set_lease(lease_id);
   grpc::Status status = this->lock->Lock(&context, request, &response);
   if (!status.ok()) {
-    return status;
+    return yfs2::common::StatusConverter::Convert(status);
   }
   this->key = response.key();
 
-  return status;
+  return absl::OkStatus();
 }
 
-grpc::Status EtcdLock::Unlock() {
+absl::Status EtcdLock::Unlock() {
   grpc::ClientContext context;
   v3lockpb::UnlockRequest request;
   v3lockpb::UnlockResponse response;
   request.set_key(this->key);
 
-  return this->lock->Unlock(&context, request, &response);
+  auto res = this->lock->Unlock(&context, request, &response);
+
+  return yfs2::common::StatusConverter::Convert(res);
 }
 
 }  // namespace yfs2

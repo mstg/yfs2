@@ -23,6 +23,8 @@
 
 #include "grpcpp/grpcpp.h"
 
+#include "yfs2/common/status_converter.h"
+
 namespace yfs2 {
 
 EtcdLease::EtcdLease(std::shared_ptr<grpc::Channel> channel, int ttl) {
@@ -33,7 +35,7 @@ EtcdLease::EtcdLease(std::shared_ptr<grpc::Channel> channel, int ttl) {
   lease = etcdserverpb::Lease::NewStub(this->channel);
 }
 
-grpc::Status EtcdLease::Start() {
+absl::Status EtcdLease::Start() {
   // Create lease
   auto req = etcdserverpb::LeaseGrantRequest();
   req.set_ttl(ttl);
@@ -41,7 +43,7 @@ grpc::Status EtcdLease::Start() {
   grpc::ClientContext ctx;
   auto status = lease->LeaseGrant(&ctx, req, &resp);
   if (!status.ok()) {
-    return status;
+    return yfs2::common::StatusConverter::Convert(status);
   }
 
   lease_id = resp.id();
@@ -53,10 +55,7 @@ grpc::Status EtcdLease::Start() {
     grpc::ClientContext ctx2;
     auto stream = lease->LeaseKeepAlive(&ctx2);
     if (!stream) {
-      keepalive_status = {
-          grpc::StatusCode::INTERNAL,
-          "Failed to create LeaseKeepAlive stream"
-      };
+      keepalive_status = absl::InternalError("failed to create LeaseKeepAlive stream");
       return;
     }
 
@@ -67,10 +66,7 @@ grpc::Status EtcdLease::Start() {
       etcdserverpb::LeaseKeepAliveResponse resp;
       stream->Write(req);
       if (!stream->Read(&resp)) {
-        keepalive_status = {
-            grpc::StatusCode::INTERNAL,
-            "Failed to read LeaseKeepAlive response"
-        };
+        keepalive_status = absl::InternalError("failed to read LeaseKeepAlive response");
         return;
       }
 
@@ -82,19 +78,19 @@ grpc::Status EtcdLease::Start() {
 
     // Close stream
     stream->WritesDone();
-    keepalive_status = stream->Finish();
+    keepalive_status = yfs2::common::StatusConverter::Convert(stream->Finish());
   });
 
-  return status;
+  return absl::OkStatus();
 }
 
 int64_t EtcdLease::GetLeaseId() {
   return lease_id;
 }
 
-grpc::Status EtcdLease::Close() {
+absl::Status EtcdLease::Close() {
   if (lease_id == 0) {
-    return {grpc::StatusCode::INTERNAL, "Lease ID is 0"};
+    return absl::InternalError("lease_id is 0");
   }
 
   // Cancel keepalive thread
@@ -109,17 +105,21 @@ grpc::Status EtcdLease::Close() {
   auto req = etcdserverpb::LeaseRevokeRequest();
   req.set_id(lease_id);
   etcdserverpb::LeaseRevokeResponse resp;
-  return lease->LeaseRevoke(&ctx, req, &resp);
+  auto res = lease->LeaseRevoke(&ctx, req, &resp);
+
+  return yfs2::common::StatusConverter::Convert(res);
 }
 
-grpc::Status Close(std::shared_ptr<grpc::Channel> channel, int64_t lease_id) {
+absl::Status EtcdLease::Close(const std::shared_ptr<grpc::Channel>& channel, int64_t lease_id) {
   auto lease = etcdserverpb::Lease::NewStub(channel);
 
   grpc::ClientContext ctx;
   auto req = etcdserverpb::LeaseRevokeRequest();
   req.set_id(lease_id);
   etcdserverpb::LeaseRevokeResponse resp;
-  return lease->LeaseRevoke(&ctx, req, &resp);
+  auto res = lease->LeaseRevoke(&ctx, req, &resp);
+
+  return yfs2::common::StatusConverter::Convert(res);
 }
 
 }  // namespace yfs2

@@ -22,7 +22,24 @@
 
 #include "grpcpp/grpcpp.h"
 
+#include "yfs2/common/status_converter.h"
+
 namespace yfs2 {
+
+std::string get_prefix(const std::vector<uint8_t> &key) {
+  std::vector<uint8_t> end = key;
+
+  for (u_char i = end.size() - 1; i >= 0; --i) {
+    if (end[i] < 0xff) {
+      end[i] = end[i] + 1;
+      end.resize(i + 1);
+      return {end.begin(), end.end()};
+    }
+  }
+
+  // next prefix does not exist (e.g., 0xffff);
+  return {};
+}
 
 EtcdClient::EtcdClient(const std::string &endpoint) {
   // Create clients
@@ -32,8 +49,7 @@ EtcdClient::EtcdClient(const std::string &endpoint) {
   kv = etcdserverpb::KV::NewStub(channel);
 }
 
-grpc::Status EtcdClient::GetKeyValue(const std::string &key,
-                                     std::optional<std::string> *value) {
+absl::StatusOr<std::string> EtcdClient::GetKeyValue(const std::string &key) {
   auto req = etcdserverpb::RangeRequest();
   req.set_key(key);
   etcdserverpb::RangeResponse resp;
@@ -41,19 +57,42 @@ grpc::Status EtcdClient::GetKeyValue(const std::string &key,
 
   auto status = kv->Range(&ctx, req, &resp);
   if (!status.ok()) {
-    return status;
+    return yfs2::common::StatusConverter::Convert(status);
   }
 
   if (resp.kvs_size() == 0) {
-    *value = std::nullopt;
-  } else {
-    *value = resp.kvs(0).value();
+    return absl::NotFoundError("key not found");
   }
 
-  return status;
+  return resp.kvs(0).value();
 }
 
-grpc::Status EtcdClient::PutKeyValue(const std::string &key,
+absl::StatusOr<std::vector<std::string>> EtcdClient::GetKeyValuesWithPrefix(const std::string &prefix) {
+  // Convert prefix to bytes (uint8_t array)
+  std::vector<uint8_t> prefix_bytes(prefix.begin(), prefix.end());
+
+  auto req = etcdserverpb::RangeRequest();
+  auto prefix_range_end = get_prefix(prefix_bytes);
+  req.set_range_end(prefix_range_end);
+  req.set_key(prefix);
+  etcdserverpb::RangeResponse resp;
+  grpc::ClientContext ctx;
+
+  auto status = kv->Range(&ctx, req, &resp);
+  if (!status.ok()) {
+    return yfs2::common::StatusConverter::Convert(status);
+  }
+
+  std::vector<std::string> values;
+  values.reserve(resp.kvs_size());
+  for (int i = 0; i < resp.kvs_size(); ++i) {
+    values.push_back(resp.kvs(i).value());
+  }
+
+  return values;
+}
+
+absl::Status EtcdClient::PutKeyValue(const std::string &key,
                                      const std::string &value,
                                      const std::optional<int64_t> &lease_id) {
   auto req = etcdserverpb::PutRequest();
@@ -67,10 +106,12 @@ grpc::Status EtcdClient::PutKeyValue(const std::string &key,
   etcdserverpb::PutResponse resp;
   grpc::ClientContext ctx;
 
-  return kv->Put(&ctx, req, &resp);
+  auto res = kv->Put(&ctx, req, &resp);
+
+  return yfs2::common::StatusConverter::Convert(res);
 }
 
-grpc::Status EtcdClient::RemoveLeaseFromKey(const std::string &key) {
+absl::Status EtcdClient::RemoveLeaseFromKey(const std::string &key) {
   auto req = etcdserverpb::PutRequest();
   req.set_key(key);
   req.set_ignore_value(true);
@@ -78,7 +119,9 @@ grpc::Status EtcdClient::RemoveLeaseFromKey(const std::string &key) {
   etcdserverpb::PutResponse resp;
   grpc::ClientContext ctx;
 
-  return kv->Put(&ctx, req, &resp);
+  auto res = kv->Put(&ctx, req, &resp);
+
+  return yfs2::common::StatusConverter::Convert(res);
 }
 
 std::shared_ptr<EtcdLock> EtcdClient::CreateLock() {

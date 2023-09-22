@@ -22,6 +22,8 @@
 #include <string>
 #include <thread>
 
+#include "absl/status/status.h"
+
 #include "third_party/etcd/api/v3lockpb/v3lock.grpc.pb.h"
 
 namespace yfs2 {
@@ -31,8 +33,8 @@ class EtcdLock {
   explicit EtcdLock(std::shared_ptr<grpc::Channel> channel);
   virtual ~EtcdLock() = default;
 
-  virtual grpc::Status Lock(const std::string& name, const int64_t& lease_id);
-  virtual grpc::Status Unlock();
+  virtual absl::Status Lock(const std::string& name, const int64_t& lease_id);
+  virtual absl::Status Unlock();
 
  private:
   std::shared_ptr<grpc::Channel> channel;

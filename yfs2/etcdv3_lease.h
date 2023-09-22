@@ -21,6 +21,8 @@
 #include <memory>
 #include <thread>
 
+#include "absl/status/status.h"
+
 #include "third_party/etcd/api/etcdserverpb/rpc.grpc.pb.h"
 
 namespace yfs2 {
@@ -29,11 +31,11 @@ class EtcdLease {
  public:
   explicit EtcdLease(std::shared_ptr<grpc::Channel> channel, int ttl);
   virtual ~EtcdLease() = default;
-  virtual grpc::Status Start();
+  virtual absl::Status Start();
   virtual int64_t GetLeaseId();
-  virtual grpc::Status Close();
+  virtual absl::Status Close();
 
-  static grpc::Status Close(std::shared_ptr<grpc::Channel> channel,
+  static absl::Status Close(const std::shared_ptr<grpc::Channel> &channel,
                             int64_t lease_id);
 
  private:
@@ -42,7 +44,7 @@ class EtcdLease {
   int ttl;
   int64_t lease_id = 0;
   std::thread keepalive_thread;
-  grpc::Status keepalive_status = grpc::Status::OK;
+  absl::Status keepalive_status = absl::OkStatus();
   bool active;
 };
 
