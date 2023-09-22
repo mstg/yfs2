@@ -42,6 +42,38 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
+proto_library(
+    name = "module_proto",
+    srcs = [
+        "module.proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "package_proto",
+    srcs = [
+        "package.proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "read_server_proto",
+    srcs = [
+        "read_server.proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "repository_proto",
+    srcs = [
+        "repository.proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 cc_proto_library(
     name = "file_cc_proto",
     visibility = ["//visibility:public"],
@@ -66,4 +98,36 @@ cc_proto_library(
     name = "rpm_cc_proto",
     visibility = ["//visibility:public"],
     deps = [":rpm_proto"],
+)
+
+cc_proto_library(
+    name = "module_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":module_proto"],
+)
+
+cc_proto_library(
+    name = "package_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":package_proto"],
+)
+
+cc_proto_library(
+    name = "read_server_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":read_server_proto"],
+)
+
+cc_grpc_library(
+    name = "read_server_cc_grpc",
+    srcs = [":read_server_proto"],
+    grpc_only = True,
+    visibility = ["//visibility:public"],
+    deps = [":read_server_cc_proto"],
+)
+
+cc_proto_library(
+    name = "repository_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":repository_proto"],
 )
