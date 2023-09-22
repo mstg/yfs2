@@ -18,19 +18,21 @@ syntax = "proto3";
 
 package yumrepofs.v2;
 
+import "yumrepofs/v2/package.proto";
+
 option java_multiple_files = true;
-option java_outer_classname = "RpmProto";
+option java_outer_classname = "RepositoryProto";
 option java_package = "org.resf.peridot.yumrepofs.v2";
 option go_package = "go.resf.org/peridot/yumrepofs/pb/v2;yfs2pb";
 
-// The Rpm message describes a single RPM file.
-message Rpm {
-  // Full name of the RPM file.
+// A repository is a collection of packages.
+// It belongs in a project and is used to represent a yum repository.
+// Even though it's a collection of packages / modules, it can only contain
+// artifacts that were globally imported into YFS2.
+message Repository {
+  // The name of the repository.
   string name = 1;
 
-  // Size of the RPM file in bytes.
-  uint64 size = 2;
-
-  // SHA256 hash of the RPM file.
-  string sha256 = 3;
+  // The packages that this repository contains.
+  repeated Package packages = 2;
 }

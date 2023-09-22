@@ -18,19 +18,39 @@ syntax = "proto3";
 
 package yumrepofs.v2;
 
+import "yumrepofs/v2/module.proto";
+import "yumrepofs/v2/rpm.proto";
+
 option java_multiple_files = true;
-option java_outer_classname = "RpmProto";
+option java_outer_classname = "PackageProto";
 option java_package = "org.resf.peridot.yumrepofs.v2";
 option go_package = "go.resf.org/peridot/yumrepofs/pb/v2;yfs2pb";
 
-// The Rpm message describes a single RPM file.
-message Rpm {
-  // Full name of the RPM file.
-  string name = 1;
+// Collection of RPMs descended from the same source RPM.
+message PackageRPM {
+  // The source RPM.
+  Rpm source_rpm = 1;
 
-  // Size of the RPM file in bytes.
-  uint64 size = 2;
+  // The RPMs.
+  repeated Rpm rpms = 2;
+}
 
-  // SHA256 hash of the RPM file.
-  string sha256 = 3;
+// A full module.
+message PackageModule {
+  // The module.
+  ModuleStream module = 1;
+}
+
+// A package is either a collection of RPMs or a full module.
+// For non-module packages, all RPMs MUST descend from the same
+// source RPM. For module packages, all RPMs MUST descend from
+// the same module.
+message Package {
+  oneof package_type {
+    // The package is a collection of RPMs.
+    PackageRPM rpms = 1;
+
+    // The package is a full module.
+    PackageModule module = 2;
+  }
 }

@@ -19,18 +19,11 @@ syntax = "proto3";
 package yumrepofs.v2;
 
 option java_multiple_files = true;
-option java_outer_classname = "RpmProto";
+option java_outer_classname = "ReadServerProto";
 option java_package = "org.resf.peridot.yumrepofs.v2";
 option go_package = "go.resf.org/peridot/yumrepofs/pb/v2;yfs2pb";
 
-// The Rpm message describes a single RPM file.
-message Rpm {
-  // Full name of the RPM file.
-  string name = 1;
+service ReadServer {
 
-  // Size of the RPM file in bytes.
-  uint64 size = 2;
-
-  // SHA256 hash of the RPM file.
-  string sha256 = 3;
 }
+

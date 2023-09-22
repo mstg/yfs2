@@ -23,14 +23,28 @@ option java_outer_classname = "RpmProto";
 option java_package = "org.resf.peridot.yumrepofs.v2";
 option go_package = "go.resf.org/peridot/yumrepofs/pb/v2;yfs2pb";
 
-// The Rpm message describes a single RPM file.
-message Rpm {
-  // Full name of the RPM file.
+// A module stream document, usually contains two documents (normal and -devel variant)
+// Devel is usually everything NOT in the normal document.
+message ModuleStreamDocument {
+  bytes normal = 1;
+  bytes devel = 2;
+}
+
+// A module stream (Fedora Modularity), a collection of RPM packages tightly integrated.
+// Built together as a unit, and released together.
+message ModuleStream {
+  // Name of the module
   string name = 1;
 
-  // Size of the RPM file in bytes.
-  uint64 size = 2;
+  // Stream of the module
+  string stream = 2;
 
-  // SHA256 hash of the RPM file.
-  string sha256 = 3;
+  // Context of the module
+  string context = 3;
+
+  // Version of the module
+  string version = 4;
+
+  // Module stream documents mapped by their architecture
+  map<string, ModuleStreamDocument> documents = 5;
 }

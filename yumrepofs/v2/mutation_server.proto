@@ -24,74 +24,98 @@ option java_package = "org.resf.peridot.yumrepofs.v2";
 option go_package = "go.resf.org/peridot/yumrepofs/pb/v2;yfs2pb";
 
 service MutationServer {
-  // StartTransaction starts a new transaction.
-  rpc StartTransaction(StartTransactionRequest) returns (StartTransactionResponse);
-
-  // CommitTransaction commits a transaction.
-  rpc CommitTransaction(CommitTransactionRequest) returns (CommitTransactionResponse);
-
-  // AbortTransaction aborts a transaction.
-  rpc AbortTransaction(AbortTransactionRequest) returns (AbortTransactionResponse);
-
   // UploadRpm uploads a RPM file.
+  // Returns AlreadyExists error if NVR already exists.
+  // Returns PreconditionFailed if someone else is uploading the same NVR at the same time.
+  //
+  // First an upload will start a Multipart upload session. After completing the full upload
+  // the keys for etcd will be written. The format is like /yfs2/{source_nvr}/{nvr} -> {sha256}.
+  // If it's a source RPM then it will be written to /yfs2/{source_nvr}/source -> {sha256}.
+  // Module component RPMs will be written to /yfs2/{module_name}-{module_stream}-{module_context}/{source_nvr}/{nvr} -> {sha256}.
+  // Module source RPMs will be written to /yfs2/{module_name}-{module_stream}-{module_context}/{source_nvr}/source -> {sha256}.
+  // The NVR can then be tagged into a project.
   rpc UploadRpm(stream UploadRpmRequest) returns (UploadRpmResponse);
 
   // UploadModuleMetadata uploads a module metadata file.
   rpc UploadModuleMetadata(UploadModuleMetadataRequest) returns (UploadModuleMetadataResponse);
+
+  // Returns a list of RPMs that DO NOT exist in object storage.
+  rpc ListMissingRPMs(ListMissingRPMsRequest) returns (ListMissingRPMsResponse);
+
+  // TagNVR tags a NVR into a project.
+  // Returns AlreadyExists error if NVR is already tagged into the project.
+  // Returns NotFound error if NVR does not exist.
+  // Returns PreconditionFailed if someone else is tagging the same NVR into the project at the same time.
+  rpc TagNVR(TagNVRRequest) returns (TagNVRResponse);
+
+  // ReturnMissingNVRs returns a list of NVRs that are missing from a project.
+  // Returns NotFound error if project does not exist.
+  rpc ReturnMissingNVRs(ReturnMissingNVRsRequest) returns (ReturnMissingNVRsResponse);
 }
-
-message StartTransactionRequest {
-  // Project name
-  string project_name = 1;
-}
-
-message StartTransactionResponse {
-  // Transaction ID.
-  string transaction_id = 1;
-}
-
-message CommitTransactionRequest {
-  // Transaction ID.
-  string transaction_id = 1;
-}
-
-message CommitTransactionResponse {}
-
-message AbortTransactionRequest {
-  // Transaction ID.
-  string transaction_id = 1;
-}
-
-message AbortTransactionResponse {}
 
 message UploadRpmRequest {
-  // Transaction ID.
-  string transaction_id = 1;
-
   // RPM file content.
-  bytes content = 2;
-
-  // Part number, must be sequential.
-  // Starts from 0. And fails if not sequential or a part is repeated.
-  // Fails if part > 1000
-  int32 part_number = 3;
-
-  // Unique identifier that identifies a specific RPM file.
-  // Can be a random UUID.
-  string upload_rpm_id = 4;
+  bytes content = 1;
 
   // Whether this part finishes the upload.
-  bool finished = 5;
+  // If this is set, then content will be ignored.
+  // All content must be uploaded before this part.
+  bool finished = 2;
 }
 
-message UploadRpmResponse {}
+message UploadRpmResponse {
+  // Returns the Source RPM NVR (name-version-release) string.
+  string src_nvr = 1;
+
+  // Whether the Source RPM NVR can be tagged alone into a project.
+  // Only non-module RPMs can be tagged alone. And they are grouped under
+  // a specific source NVR.
+  // Modules can be tagged into projects using their MSC (module-stream-context).
+  // The MSC is returned after successful module metadata upload.
+  bool can_tag_alone = 2;
+}
 
 message UploadModuleMetadataRequest {
-  // Transaction ID.
-  string transaction_id = 1;
-
   // Module metadata file content.
-  bytes content = 2;
+  bytes normal = 1;
+
+  // Module metadata file content for the "devel" variant.
+  // Must match {name}-devel (name from normal variant).
+  bytes devel = 2;
 }
 
-message UploadModuleMetadataResponse {}
+message UploadModuleMetadataResponse {
+  // Returns the module stream context (MSC) string.
+  string msc = 1;
+}
+
+message ListMissingRPMsRequest {
+  // List of hashes of RPMs to check
+  // Hash type is SHA256.
+  repeated string rpm_sha256_sums = 1;
+}
+
+message ListMissingRPMsResponse {
+  // List of hashes of RPMs that do not exist in object storage.
+  repeated string missing_rpm_sha256_sums = 1;
+}
+
+message TagNVRRequest {
+  // NVR to tag into a project.
+  string nvr = 1;
+
+  // Project to tag into.
+  string project = 2;
+}
+
+message TagNVRResponse {}
+
+message ReturnMissingNVRsRequest {
+  // Project to check.
+  string project = 1;
+}
+
+message ReturnMissingNVRsResponse {
+  // List of NVRs that are missing from the project.
+  repeated string missing_nvrs = 1;
+}
