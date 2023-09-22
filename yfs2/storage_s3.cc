@@ -20,13 +20,17 @@
 #include <list>
 #include <utility>
 
+using minio::http::DataFunctionArgs;
+using minio::creds::IamAwsProvider;
+using std::optional;
+
 namespace yfs2 {
 
 StorageS3::StorageS3(std::string bucket_,
                      bool debug,
-                     std::optional<std::string> region_,
-                     const std::optional<std::string>& access_key,
-                     const std::optional<std::string>& secret_key,
+                     optional<std::string> region_,
+                     const optional<std::string>& access_key,
+                     const optional<std::string>& secret_key,
                      const std::string& endpoint,
                      bool endpoint_secure) {
   bucket = std::move(bucket_);
@@ -46,7 +50,6 @@ StorageS3::StorageS3(std::string bucket_,
     if (!region_ && !getenv("AWS_REGION")) {
       setenv("AWS_REGION", "us-east-2", 1);
     }
-    using IamAwsProvider = minio::creds::IamAwsProvider;
     creds = std::make_shared<IamAwsProvider>();
   } else {
     // Default back to static credentials, and if one of the keys
@@ -97,8 +100,7 @@ absl::StatusOr<std::string> StorageS3::Get(const std::string &path) {
   args.object = path;
 
   std::string content;
-  using DataFunctionArgs = const minio::http::DataFunctionArgs;
-  args.datafunc = [&content = content](DataFunctionArgs &args) -> bool {
+  args.datafunc = [&content = content](const DataFunctionArgs &args) -> bool {
     content.insert(content.end(), args.datachunk.begin(), args.datachunk.end());
     return true;
   };
