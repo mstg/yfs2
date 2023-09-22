@@ -19,6 +19,7 @@
 #define YFS2_RPM_H_
 
 #include <string>
+#include <utility>
 
 #include "rpm/rpmlib.h"
 #include "absl/status/status.h"
@@ -32,6 +33,10 @@ class Rpm {
   virtual ~Rpm();
 
   virtual absl::Status Init(const std::string &rpm_path);
+  virtual absl::Status InitWithHeaderOnly(void *header_data);
+
+  virtual absl::StatusOr<std::pair<void*, uint32_t>> ExportHeader();
+
   virtual absl::StatusOr<std::string> GetHeaderStr(const rpmTagVal &tag);
 
  private:

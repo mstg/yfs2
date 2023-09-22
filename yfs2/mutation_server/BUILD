@@ -22,6 +22,7 @@ cc_library(
     hdrs = ["impl.h"],
     deps = [
         "//yfs2:etcdv3",
+        "//yfs2:refilling_cache",
         "//yfs2:rpm",
         "//yfs2:storage_s3",
         "//yumrepofs/v2:mutation_server_cc_grpc",

@@ -26,6 +26,7 @@
 #include "yfs2/common/flag.h"
 #include "yfs2/mutation_server/impl.h"
 #include "yfs2/storage_s3.h"
+#include "yfs2/rpm.h"
 
 YFS2_STRING_FLAG(listen_addr, "[::]", "Address to listen on");
 YFS2_INT32_FLAG(listen_port, 6771, "Port to listen on");
@@ -83,6 +84,39 @@ int main(int argc, char **argv) {
     LOG(INFO) << "Mustafa: " << get_mustafa.value();
   } else {
     LOG(ERROR) << "Mustafa not found";
+  }
+
+  auto rpm = yfs2::Rpm(true);
+  auto err = rpm.Init("/tmp/kernel-core-4.18.0-477.21.1.el8_8.x86_64.rpm");
+  if (!err.ok()) {
+    LOG(FATAL) << "Failed to init RPM: " << err.message();
+  }
+
+  auto rpm2 = yfs2::Rpm(true);
+  auto exp = rpm.ExportHeader();
+  LOG(INFO) << "Header size: " << exp.value().second;
+  if (!exp.ok()) {
+    LOG(FATAL) << "Failed to export RPM header: " << exp.status().message();
+  }
+  err = rpm2.InitWithHeaderOnly(exp.value().first);
+  if (!err.ok()) {
+    LOG(FATAL) << "Failed to init RPM: " << err.message();
+  }
+
+  auto get_source_rpm = rpm2.GetHeaderStr(RPMTAG_SOURCERPM);
+  if (get_source_rpm.ok()) {
+    LOG(INFO) << "Source RPM: " << get_source_rpm.value();
+  } else {
+    LOG(ERROR) << "Source RPM not found";
+  }
+
+  auto res = etcd->GetKeyValuesWithPrefix("/test/asd/");
+  if (!res.ok()) {
+    LOG(FATAL) << "Failed to get key values with prefix: " << res.status().message();
+  }
+
+  for (auto &value : res.value()) {
+    LOG(INFO) << "Value: " << value;
   }
 
   yfs2::mutation_server::MutationServerImpl mutation_server(etcd, storage);

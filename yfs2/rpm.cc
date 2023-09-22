@@ -73,6 +73,29 @@ absl::Status Rpm::Init(const std::string &rpm_path) {
   return absl::OkStatus();
 }
 
+absl::Status Rpm::InitWithHeaderOnly(void *header_data) {
+  // Since there is no RPM to open, we'll only initialize the header
+  header = headerImport(header_data, 0, HEADERIMPORT_COPY);
+
+  // Check error
+  if (header == nullptr) {
+    return absl::InternalError("failed to import header");
+  }
+
+  return absl::OkStatus();
+}
+
+absl::StatusOr<std::pair<void*, uint32_t>> Rpm::ExportHeader() {
+  // Export the header
+  uint32_t header_size = 0;
+  void *header_data = headerExport(header, &header_size);
+  if (header_data == nullptr) {
+    return absl::InternalError("failed to export header");
+  }
+
+  return std::make_pair(header_data, header_size);
+}
+
 absl::StatusOr<std::string> Rpm::GetHeaderStr(const rpmTagVal &tag) {
   // Get the header
   const char *header_value_c = headerGetString(header, tag);

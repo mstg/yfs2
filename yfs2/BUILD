@@ -32,6 +32,21 @@ cc_library(
     deps = [
         "//third_party/etcd/api/etcdserverpb:rpc",
         "//third_party/etcd/api/v3lockpb:v3lock",
+        "//yfs2/common",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_library(
+    name = "refilling_cache",
+    srcs = ["refilling_cache.cc"],
+    hdrs = ["refilling_cache.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":etcdv3",
+        ":rpm",
+        "//yumrepofs/v2:module_cc_proto",
     ],
 )
 
