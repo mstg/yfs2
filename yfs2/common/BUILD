@@ -18,6 +18,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "common",
-    hdrs = ["flag.h"],
+    hdrs = [
+        "flag.h",
+        "status_converter.h",
+    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ],
 )
