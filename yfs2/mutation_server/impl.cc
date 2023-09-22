@@ -25,6 +25,7 @@ MutationServerImpl::MutationServerImpl(std::shared_ptr<EtcdClient> _etcd,
                                        std::shared_ptr<Storage> _storage) {
   etcd = std::move(_etcd);
   storage = std::move(_storage);
+  cache = std::make_shared<RefillingCache>(etcd, true);
 }
 
 }

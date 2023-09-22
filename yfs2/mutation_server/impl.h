@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "yfs2/etcdv3.h"
+#include "yfs2/refilling_cache.h"
 #include "yfs2/storage.h"
 #include "yumrepofs/v2/mutation_server.grpc.pb.h"
 
@@ -34,6 +35,7 @@ class MutationServerImpl : public yumrepofs::v2::MutationServer::Service {
  private:
   std::shared_ptr<yfs2::EtcdClient> etcd;
   std::shared_ptr<yfs2::Storage> storage;
+  std::shared_ptr<yfs2::RefillingCache> cache;
 };
 
 }  // namespace yfs2::mutation_server
